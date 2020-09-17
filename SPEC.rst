@@ -55,8 +55,8 @@ busy freezing here dataset.  Once the dataset is frozen a dialogue displaying
 the URI of the frozen dataset pops up.
 
 
-Create metadata template
-------------------------
+Metadata template creation red route
+------------------------------------
 
 Dora the data manager is helping Becky and the other biologists in the lab
 manage their data. She has helped them work out what types of datasets they will
