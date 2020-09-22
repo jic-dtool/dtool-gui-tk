@@ -18,7 +18,6 @@ CUR_DIR = os.getcwd()
 JUNK_DIR = os.path.join(HOME_DIR, "junk")
 
 
-
 class App(tk.Tk):
 
     def __init__(self):
