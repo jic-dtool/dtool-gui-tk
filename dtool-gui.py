@@ -59,7 +59,7 @@ class App(tk.Tk):
 
     @property
     def data_directory(self):
-        return self._data_directory
+        return self._data_directory.get()
 
     @property
     def base_uri(self):
