@@ -18,15 +18,19 @@ CUR_DIR = os.getcwd()
 JUNK_DIR = os.path.join(HOME_DIR, "junk")
 
 
+
 class App(tk.Tk):
 
     def __init__(self):
         super().__init__()
-        self._data_directory = CUR_DIR
-        logging.info(f"Initilised data directory to: {self._data_directory}")
+        self._data_directory = tk.StringVar()
+        self._data_directory.set(CUR_DIR)
+        logging.info(f"Data directory set to: {CUR_DIR}")
 
         dataset_name_lbl = tk.Label(text="Dataset name")
         self.dataset_name = tk.Entry(self)
+
+        self.data_dir_lbl = tk.Label(text=self._data_directory.get())
         self.data_dir_btn = tk.Button(
             self,
             text="Select data directory",
@@ -38,17 +42,21 @@ class App(tk.Tk):
             command=self.create_dataset
         )
 
-        dataset_name_lbl.pack(side=tk.LEFT)
-        self.dataset_name.pack()
-        self.data_dir_btn.pack()
-        freeze_btn.pack()
+        dataset_name_lbl.grid(row=0, column=0)
+        self.dataset_name.grid(row=0, column=1)
+        self.data_dir_lbl.grid(row=1, column=0)
+        self.data_dir_btn.grid(row=1, column=1)
+        freeze_btn.grid(row=2, column=0, rowspan=2)
 
     def select_data_directory(self):
-        self._data_directory = fd.askdirectory(
+        data_directory = fd.askdirectory(
             title="Select data directory",
             initialdir=HOME_DIR
         )
-        logging.info(f"Data directory set to: {self._data_directory}")
+        self._data_directory.set(data_directory)
+        self.data_dir_lbl.config(text=self._data_directory.get())
+
+        logging.info(f"Data directory set to: {data_directory}")
 
     @property
     def data_directory(self):
