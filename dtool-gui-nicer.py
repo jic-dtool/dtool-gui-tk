@@ -27,6 +27,18 @@ def iter_datasets_in_base_uri(base_uri):
             pass
 
 
+def yield_path_handle_tuples(data_directory):
+    path_length = len(data_directory) + 1
+
+    for dirpath, dirnames, filenames in os.walk(data_directory):
+        for fn in filenames:
+            path = os.path.join(dirpath, fn)
+            relative_path = path[path_length:]
+            if dtoolcore.utils.IS_WINDOWS:
+                handle = dtoolcore.utils.windows_to_unix_path(relative_path)
+            yield (path, handle)
+
+
 class DataSetNameFrame(tk.Frame):
 
     def __init__(self, master):
@@ -34,13 +46,18 @@ class DataSetNameFrame(tk.Frame):
         vcmd = (master.register(self.validate_callback), "%P")
         label_frame = tk.LabelFrame(self, text="Dataset name")
         label_frame.pack()
-        entry = tk.Entry(
+        self.entry = tk.Entry(
             label_frame,
             validate="key",
             validatecommand=vcmd,
             invalidcommand=self.invalid_name
         )
-        entry.pack()
+        self.entry.pack()
+
+
+    @property
+    def name(self):
+        return self.entry.get()
 
     def validate_callback(self, name):
         if (name is not None) and (len(name) > 0):
@@ -68,6 +85,10 @@ class DataDirectoryFrame(tk.Frame):
         self.entry.pack()
         self.btn.pack()
 
+    @property
+    def data_directory(self):
+        return self.entry.get()
+
     def select_data_directory(self):
         data_directory = fd.askdirectory(
             title="Select data directory",
@@ -82,7 +103,7 @@ class MetaDataFrame(tk.Frame):
 
     def __init__(self, master):
         super().__init__(master)
-        self.metadata = dict()
+        self._metadata = dict()
         label_frame = tk.LabelFrame(self, text="Metadata")
         label_frame.pack()
         tk.Label(label_frame, text="Key").grid(row=0)
@@ -95,14 +116,18 @@ class MetaDataFrame(tk.Frame):
         self.list_box = tk.Listbox(label_frame)
         self.list_box.grid(row=2, columnspan=3)
 
+    @property
+    def metadata(self):
+        return self._metadata
+
     def add_metadata(self):
         _key = self.key_entry.get()
         _value = self.value_entry.get()
-        self.metadata[_key] = _value
+        self._metadata[_key] = _value
         logger.info(f"Add metadata pair: {_key} {_value}")
         self.list_box.delete(0, tk.END)
-        for key in sorted(self.metadata.keys()):
-            value = self.metadata[key]
+        for key in sorted(self._metadata.keys()):
+            value = self._metadata[key]
             self.list_box.insert(tk.END, f"{key}: {value}")
         logger.info(f"Current metadata: {self.metadata}")
 
@@ -112,13 +137,40 @@ class DataSetCreationWindow(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Create new dataset")
-        dataset_name_frame = DataSetNameFrame(self)
-        data_directory_frame = DataDirectoryFrame(self)
-        metadata_frame = MetaDataFrame(self)
+        self.dataset_name_frame = DataSetNameFrame(self)
+        self.data_directory_frame = DataDirectoryFrame(self)
+        self.metadata_frame = MetaDataFrame(self)
 
-        dataset_name_frame.pack()
-        data_directory_frame.pack()
-        metadata_frame.pack()
+        self.dataset_name_frame.pack()
+        self.data_directory_frame.pack()
+        self.metadata_frame.pack()
+
+        self.base_uri = JUNK_DIR
+        create_button = tk.Button(self, text="Create", command=self.create)
+        create_button.pack()
+
+
+    def create(self):
+        dataset_name = self.dataset_name_frame.name
+        data_directory = self.data_directory_frame.data_directory
+
+        logger.info(f"Creating {dataset_name} in {self.base_uri} using files in {data_directory}")
+
+        readme_lines = ["---"]
+        with dtoolcore.DataSetCreator(
+            name=dataset_name,
+            base_uri=self.base_uri
+        ) as ds_creator:
+            for fpath, handle in yield_path_handle_tuples(data_directory):
+                ds_creator.put_item(fpath, handle)
+            for key, value in self.metadata_frame.metadata.items():
+                ds_creator.put_annotation(key, value)
+                readme_lines.append(f"{key}: {value}")
+            ds_creator.put_readme("\n".join(readme_lines))
+            dataset_uri = ds_creator.uri
+
+        logger.info(f"Created dataset with URI: {dataset_uri}")
+
 
 
 class ListDataSetsWindow(tk.Tk):
