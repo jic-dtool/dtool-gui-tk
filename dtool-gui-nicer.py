@@ -54,7 +54,6 @@ class DataSetNameFrame(tk.Frame):
         )
         self.entry.pack()
 
-
     @property
     def name(self):
         return self.entry.get()
@@ -112,7 +111,11 @@ class MetaDataFrame(tk.Frame):
         tk.Label(label_frame, text="Value").grid(row=1)
         self.value_entry = tk.Entry(label_frame)
         self.value_entry.grid(row=1, column=1)
-        tk.Button(label_frame, text="Add", command=self.add_metadata).grid(row=1, column=3)
+        tk.Button(
+            label_frame,
+            text="Add",
+            command=self.add_metadata
+        ).grid(row=1, column=3)
         self.list_box = tk.Listbox(label_frame)
         self.list_box.grid(row=2, columnspan=3)
 
@@ -149,12 +152,11 @@ class DataSetCreationWindow(tk.Tk):
         create_button = tk.Button(self, text="Create", command=self.create)
         create_button.pack()
 
-
     def create(self):
         dataset_name = self.dataset_name_frame.name
         data_directory = self.data_directory_frame.data_directory
 
-        logger.info(f"Creating {dataset_name} in {self.base_uri} using files in {data_directory}")
+        logger.info(f"Creating {dataset_name} in {self.base_uri} using files in {data_directory}")  # NOQA
 
         readme_lines = ["---"]
         with dtoolcore.DataSetCreator(
@@ -170,7 +172,6 @@ class DataSetCreationWindow(tk.Tk):
             dataset_uri = ds_creator.uri
 
         logger.info(f"Created dataset with URI: {dataset_uri}")
-
 
 
 class ListDataSetsWindow(tk.Tk):
