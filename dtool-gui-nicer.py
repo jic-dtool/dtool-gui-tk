@@ -91,7 +91,7 @@ class MetaDataFrame(tk.Frame):
         logging.info(f"Current metadata: {self.metadata}")
 
 
-class DataSetCreationView(tk.Tk):
+class DataSetCreationView(tk.Toplevel):
 
     def __init__(self):
         super().__init__()
@@ -105,7 +105,23 @@ class DataSetCreationView(tk.Tk):
         metadata_frame.pack()
 
 
+class App(tk.Tk):
+
+    def __init__(self):
+        super().__init__()
+        self.create_dataset_btn = tk.Button(
+            self,
+            text="Create new dataset",
+            command=self.open_create_dataset_window
+        )
+        self.create_dataset_btn.pack()
+
+    def open_create_dataset_window(self):
+        dataset_creation_view = DataSetCreationView()
+        dataset_creation_view.grab_set()
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    app = DataSetCreationView()
+    app = App()
     app.mainloop()
