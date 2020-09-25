@@ -107,7 +107,7 @@ class MetaDataFrame(tk.Frame):
         logger.info(f"Current metadata: {self.metadata}")
 
 
-class DataSetCreationWindow(tk.Toplevel):
+class DataSetCreationWindow(tk.Tk):
 
     def __init__(self):
         super().__init__()
@@ -121,7 +121,7 @@ class DataSetCreationWindow(tk.Toplevel):
         metadata_frame.pack()
 
 
-class ListDataSetsWindow(tk.Toplevel):
+class ListDataSetsWindow(tk.Tk):
 
     def __init__(self):
         super().__init__()
