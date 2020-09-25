@@ -107,15 +107,19 @@ class MetaDataFrame(tk.Frame):
         label_frame.pack()
         tk.Label(label_frame, text="Key").grid(row=0)
         self.key_entry = tk.Entry(label_frame)
+        self.key_entry.bind("<Return>", self.key_event)
         self.key_entry.grid(row=0, column=1)
         tk.Label(label_frame, text="Value").grid(row=1)
         self.value_entry = tk.Entry(label_frame)
+        self.value_entry.bind("<Return>", self.value_event)
         self.value_entry.grid(row=1, column=1)
-        tk.Button(
+        self.btn = tk.Button(
             label_frame,
             text="Add",
             command=self.add_metadata
-        ).grid(row=1, column=3)
+        )
+        self.btn.bind("<Return>", self.value_event)
+        self.btn.grid(row=1, column=3)
         self.list_box = tk.Listbox(label_frame)
         self.list_box.grid(row=2, columnspan=3)
 
@@ -133,6 +137,15 @@ class MetaDataFrame(tk.Frame):
             value = self._metadata[key]
             self.list_box.insert(tk.END, f"{key}: {value}")
         logger.info(f"Current metadata: {self.metadata}")
+
+    def key_event(self, event):
+        self.value_entry.focus_set()
+
+    def value_event(self, event):
+        self.add_metadata()
+        self.key_entry.delete(0, tk.END)
+        self.value_entry.delete(0, tk.END)
+        self.key_entry.focus_set()
 
 
 class DataSetCreationWindow(tk.Tk):
