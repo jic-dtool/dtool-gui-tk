@@ -94,3 +94,57 @@ the template
 
 Once Dora has added all the metadata fields she presses the "Save template"
 button.
+
+
+Technical details
+-----------------
+
+There will be a ``Model`` class which will act as the model in
+the Model View Controller (MVC) pattern. This will initially need Create Read
+Update Delete (CRUD) functionality to manage:
+
+- Base URIs
+- Flat metadata schemas
+- Dataset metadata
+
+In later releases the ``Model`` will also include CRUD functionality to manage:
+
+- Remote base URI credentials
+- Nested metadata schemas
+
+There will be several View classes.
+
+- ``DataSetListView`` that lists all the datasets in the currently selected base URI
+- ``DataSetView`` that displays information about the currently selected dataset
+- ``UpdateMetaDataView`` that displays a form for updating the currently selected dataset's metadata
+- ``CreateDataSetView`` that displays a form for creating a dataset
+
+The ``Controller`` class will know about the Model and the Views and will be
+responsible for updating the model and the view in response to the user driven
+events. For sample code implementing this pattern using tkinter see:
+https://gist.github.com/ajfigueroa/c2af555630d1db3efb5178ece728b017
+
+
+Example code
+------------
+
+The code below illustrates how to work with the ``Model`` class.
+
+.. code-block:: python
+
+    >>> from dtool_gui import Model
+    >>> model = Model()
+
+The ``model`` instance can be used to manage base URIs.
+
+.. code-block:: python
+
+    >>> model.add_base_uri("file:///home/olssont/datasets")
+    >>> model.add_base_uri("s3://dtool-demo")
+    >>> assert model.list_base_uris() == ["file:///home/olssont/datasets", "s3://dtool-demo"]
+    >>> model.update_base_uri("s3://dtool-demo", "s3://dtool-testing")
+    >>> assert model.list_base_uris() == ["file:///home/olssont/datasets", "s3://dtool-testing"]
+    >>> model.delete_base_uri("s3://dtool-testing")
+    >>> assert model.list_base_uris() == ["file:///home/olssont/datasets"]
+
+ADD API FOR WORKING WITH SCHEMAS.
