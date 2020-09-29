@@ -125,6 +125,17 @@ events. For sample code implementing this pattern using tkinter see:
 https://gist.github.com/ajfigueroa/c2af555630d1db3efb5178ece728b017
 
 
+Metadata schema
+---------------
+
+Metadata schemas will be defined using ``JSON Schema`` format. See for example,
+`Understanding JSON Schema
+<http://json-schema.org/understanding-json-schema/index.html>`_.
+
+Support for JSON Schema in Python can be found in the
+`jsonschema package<https://python-jsonschema.readthedocs.io>`_.
+
+
 Example code
 ------------
 
@@ -147,4 +158,30 @@ The ``model`` instance can be used to manage base URIs.
     >>> model.delete_base_uri("s3://dtool-testing")
     >>> assert model.list_base_uris() == ["file:///home/olssont/datasets"]
 
-ADD API FOR WORKING WITH SCHEMAS.
+The ``model`` instance can also be used to manage and work with schema items.
+The code below adds three metadata schema items.
+
+.. code-block:: python
+
+    >>> model.add_schema_item(key_name="project", schema={"type": "string"})
+    >>> model.add_schema_item(key_name="age", schema={"type": "integer"})
+    >>> model.add_schema_item(key_name="nucleic_acid_type", schema={"type": "string", "enum": ["DNA", "RNA"]})
+
+It is possible to list the metadata schema items by name.
+
+.. code-block:: python
+
+    >>> model.metadata_schema.keys()
+    ["age", "nucleic_acid_type", "project"]
+
+It is possible to work with a ``MetaDataSchemaItem`` instance.
+
+.. code-block:: python
+
+    >>> project_schema = model.metadata_schema["project"]
+    >>> print(project_schema.type)
+    'string'
+    >>> print(project_schema.options)
+    None
+    >>> print(model.metadata_schema["nucleic_acid_type"].options)
+    ["DNA", "RNA"]
