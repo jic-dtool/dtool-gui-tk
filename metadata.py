@@ -35,9 +35,7 @@ class MetadataSchemaItem(object):
 
         # Ensure that the schema is valid.
         try:
-            jsonschema.validate(None, self._schema)
-        except jsonschema.exceptions.ValidationError:
-            pass
+            self._ivalidator.check_schema(self._schema)
         except jsonschema.exceptions.SchemaError as e:
             raise(SchemaError(e))
 
@@ -50,11 +48,7 @@ class MetadataSchemaItem(object):
         return self._schema.get("enum", None)
 
     def is_okay(self, value):
-        try:
-            jsonschema.validate(value, self._schema)
-        except jsonschema.exceptions.ValidationError:
-            return False
-        return True
+        return self._ivalidator.is_valid(value)
 
     def issues(self, value):
         return [i.message for i in self._ivalidator.iter_errors(value)]
