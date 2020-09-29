@@ -8,8 +8,10 @@ Example usage:
 'string'
 >>> nucl_acid.enum
 ['DNA', 'RNA']
->>> print(nucl_acid.issues("RNA"))
-[]
+>>> print(nucl_acid.is_okay("RNA"))
+True
+>>> print(nucl_acid.is_okay("Not DNA"))
+False
 >>> for i in nucl_acid.issues("Not DNA"):
 ...     print(i)
 ...
@@ -22,10 +24,6 @@ import jsonschema.validators
 
 
 class SchemaError(jsonschema.exceptions.SchemaError):
-    pass
-
-
-class ValidationError(jsonschema.exceptions.ValidationError):
     pass
 
 
@@ -51,11 +49,12 @@ class MetadataSchemaItem(object):
     def enum(self):
         return self._schema.get("enum", None)
 
-    def validate(self, value):
+    def is_okay(self, value):
         try:
-            return jsonschema.validate(value, self._schema)
-        except jsonschema.exceptions.ValidationError as e:
-            raise(ValidationError(e))
+            jsonschema.validate(value, self._schema)
+        except jsonschema.exceptions.ValidationError:
+            return False
+        return True
 
     def issues(self, value):
         return [i.message for i in self._ivalidator.iter_errors(value)]
