@@ -11,6 +11,23 @@ logger = logging.getLogger(__file__)
 
 PROJECT_SCHEMA = {"type": "string", "minLength": 3, "maxLength": 80}
 NUCLEIC_ACID_SCHEMA = {"type": "string", "enum": ["DNA", "RNA"]}
+AGE_SCHEMA = {"type": "integer", "minimum": 18, "maximum": 65}
+
+class UnsupportedTypeError(TypeError):
+    pass
+
+
+def string_to_typed(str_, type_):
+    if type_ == "string":
+        return str_
+    elif type_ == "integer":
+        logger.info("Forcing type to integer")
+        return int(str_)
+    elif type_ == "float":
+        logger.info("Forcing type to float")
+        return float(str_)
+    else:
+        raise(UnsupportedTypeError(f"{type_} not supported yet"))
 
 
 class App(tk.Tk):
@@ -23,13 +40,15 @@ class App(tk.Tk):
         self.metadata_entries = {}
         self.metadata_schemas = {
             "project": MetadataSchemaItem(PROJECT_SCHEMA),
-            "nucl_acid": MetadataSchemaItem(NUCLEIC_ACID_SCHEMA)
+            "nucl_acid": MetadataSchemaItem(NUCLEIC_ACID_SCHEMA),
+            "age": MetadataSchemaItem(AGE_SCHEMA),
         }
         self.setup_metadata()
 
     def get_metadata(self, key):
         value_str = self.metadata_entries[key].get()
-        value = value_str  # Need a transform to go to non-string types.
+        value_type = self.metadata_schemas[key].type
+        value = string_to_typed(value_str, value_type)  # Need a transform to go to non-string types.
         logger.info("Getting metadata for {key}: {value}")
         return value
 
