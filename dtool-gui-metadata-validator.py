@@ -2,6 +2,7 @@
 
 import logging
 import tkinter as tk
+import tkinter.ttk as ttk
 
 from metadata import MetadataSchemaItem
 
@@ -45,6 +46,19 @@ class App(tk.Tk):
             self.labels[key].config({"text": f"{key}"})
         return okay
 
+    def setup_input_field(self, row, key):
+
+            schema = self.metadata_schemas[key]
+            if schema.enum is None:
+                vcmd = (self.register(self.validate_metadata), key)
+                e = tk.Entry(self, validate="focusout", validatecommand=vcmd)
+                e.grid(row=row, column=1)
+                self.metadata_entries[key] = e
+            else:
+                e = ttk.Combobox(self, values=schema.enum)
+                e.grid(row=row, column=1)
+                self.metadata_entries[key] = e
+
     def setup_metadata(self):
         for row, key in enumerate(sorted(self.metadata_schemas.keys())):
 
@@ -52,10 +66,12 @@ class App(tk.Tk):
             lbl.grid(row=row, column=0)
             self.labels[key] = lbl
 
-            vcmd = (self.register(self.validate_metadata), key)
-            e = tk.Entry(self, validate="focusout", validatecommand=vcmd)
-            e.grid(row=row, column=1)
-            self.metadata_entries[key] = e
+            self.setup_input_field(row, key)
+
+#           vcmd = (self.register(self.validate_metadata), key)
+#           e = tk.Entry(self, validate="focusout", validatecommand=vcmd)
+#           e.grid(row=row, column=1)
+#           self.metadata_entries[key] = e
 
 
 if __name__ == "__main__":
