@@ -54,6 +54,8 @@ class UnsupportedTypeError(TypeError):
 
 def string_to_typed(str_, type_):
     if type_ == "string":
+        if str_ == "":
+            return None
         return str_
     elif type_ == "integer":
         try:
@@ -61,14 +63,14 @@ def string_to_typed(str_, type_):
             return int(str_)
         except ValueError:
             logger.warning("Could not force to integer")
-            return str_
+            return None
     elif type_ == "number":
         try:
             logger.info("Forcing type to float")
             return float(str_)
         except ValueError:
             logger.warning("Could not force to float")
-            return str_
+            return None
     elif type_ == "boolean":
         logger.info("Forcing type to bool")
         if str_ == "True":
@@ -77,7 +79,7 @@ def string_to_typed(str_, type_):
             return False
         else:
             logger.warning("Could not force to bool")
-            return str_
+            return None
     else:
         raise(UnsupportedTypeError(f"{type_} not supported yet"))
 
@@ -89,6 +91,7 @@ class App(tk.Tk):
         logger.info("Initialising GUI")
         self.title("Metadata spike GUI")
         self.labels = {}
+        self.issues = {}
         self.metadata_entries = {}
         self.metadata_schemas = {
             "project": MetadataSchemaItem(PROJECT_SCHEMA),
@@ -100,8 +103,19 @@ class App(tk.Tk):
         }
         row = self.setup_metadata()
 
-        create_button = tk.Button(self, text="Create", command=self.create)
-        create_button.grid(row=row, column=2)
+
+        self.create_button = tk.Button(
+            self,
+            text="Create",
+            command=self.create,
+            state="disabled"
+        )
+        self.create_button.grid(row=row, column=2)
+
+        self.issues_listbox = tk.Listbox(self)
+        self.issues_listbox.grid(row=row+1, column=0, columnspan=2)
+
+        self.report_issues()
 
     def get_metadata(self, key):
         value_str = self.metadata_entries[key].get()
@@ -115,12 +129,13 @@ class App(tk.Tk):
         okay = self.metadata_schemas[key].is_okay(value)
         logger.info(f"{key}={value} okay={okay}")
         if not okay:
-            issues = "\n".join(self.metadata_schemas[key].issues(value))
+            self.issues[key] = self.metadata_schemas[key].issues(value)
             self.metadata_entries[key].config({"background": "pink"})
-            self.labels[key].config({"text": f"{key} ({issues})"})
         else:
+            if key in self.issues:
+                del self.issues[key]
             self.metadata_entries[key].config({"background": "white"})
-            self.labels[key].config({"text": f"{key}"})
+        self.report_issues()
         return okay
 
     def setup_input_field(self, row, key):
@@ -151,6 +166,20 @@ class App(tk.Tk):
             self.setup_input_field(row, key)
             _row = row
         return _row + 1
+
+
+    def report_issues(self):
+        any_issue = False
+        self.issues_listbox.delete(0, tk.END)
+        if None in [self.get_metadata(k) for k in self.metadata_schemas.keys()]:
+            self.issues_listbox.insert(tk.END, "All fields need to be completed")
+            any_issue = True
+        for key in sorted(self.issues.keys()):
+            for issue in self.issues[key]:
+                any_issue = True
+                self.issues_listbox.insert(tk.END, f"{key}: {issue}")
+        if not any_issue:
+            self.create_button.config({"state": "active"})
 
     def create(self):
         for key in sorted(self.metadata_schemas.keys()):
