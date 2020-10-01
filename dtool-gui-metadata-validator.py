@@ -190,6 +190,10 @@ class App(tk.Tk):
                 self.issues_listbox.insert(tk.END, f"{key}: {issue}")
         if not any_issue:
             self.create_button.config({"state": "active"})
+            self.issues_listbox.insert(tk.END, 'Press the "Create" button!')
+            self.issues_listbox.config({"background": "pale green"})
+        else:
+            self.issues_listbox.config({"background": "pink"})
 
     def create(self):
         for key in sorted(self.metadata_schemas.keys()):
