@@ -101,7 +101,9 @@ class App(tk.Tk):
             "pooled": MetadataSchemaItem(POOLED_SCHEMA),
             "species": MetadataSchemaItem(SPECIES),
         }
-        row = self.setup_metadata()
+
+        row = self.setup_issues_listbox(0)
+        row = self.setup_metadata(row)
 
 
         self.create_button = tk.Button(
@@ -110,12 +112,19 @@ class App(tk.Tk):
             command=self.create,
             state="disabled"
         )
-        self.create_button.grid(row=row, column=2)
-
-        self.issues_listbox = tk.Listbox(self)
-        self.issues_listbox.grid(row=row+1, column=0, columnspan=2)
+        self.create_button.grid(row=row, column=0, columnspan=2, sticky="ew")
 
         self.report_issues()
+
+    def setup_issues_listbox(self, initial_row):
+        self.issues_listbox = tk.Listbox(self, height=3)
+        self.issues_listbox.grid(
+            row=initial_row,
+            column=0,
+            columnspan=2,
+            sticky="ew"
+        )
+        return initial_row + 1
 
     def get_metadata(self, key):
         value_str = self.metadata_entries[key].get()
@@ -143,28 +152,29 @@ class App(tk.Tk):
         schema = self.metadata_schemas[key]
         if schema.type == "boolean":
             e = ttk.Combobox(self, state="readonly", values=["True", "False"])
-            e.grid(row=row, column=1)
+            e.grid(row=row, column=1, sticky="ew")
             self.metadata_entries[key] = e
         elif schema.enum is None:
             vcmd = (self.register(self.validate_metadata), key)
             e = tk.Entry(self, validate="focusout", validatecommand=vcmd)
-            e.grid(row=row, column=1)
+            e.grid(row=row, column=1, sticky="ew")
             self.metadata_entries[key] = e
         else:
             e = ttk.Combobox(self, state="readonly", values=schema.enum)
-            e.grid(row=row, column=1)
+            e.grid(row=row, column=1, sticky="ew")
             self.metadata_entries[key] = e
 
-    def setup_metadata(self):
-        _row = -1
+    def setup_metadata(self, initial_row):
+        _row = initial_row
         for row, key in enumerate(sorted(self.metadata_schemas.keys())):
 
+            current_row = row + initial_row
             lbl = tk.Label(text=key)
-            lbl.grid(row=row, column=0)
+            lbl.grid(row=current_row, column=0, sticky="e")
             self.labels[key] = lbl
 
-            self.setup_input_field(row, key)
-            _row = row
+            self.setup_input_field(current_row, key)
+            _row = current_row
         return _row + 1
 
 
