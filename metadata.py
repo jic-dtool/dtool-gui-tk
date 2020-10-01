@@ -37,7 +37,7 @@ class MetadataSchemaItem(object):
         try:
             self._ivalidator.check_schema(self._schema)
         except jsonschema.exceptions.SchemaError as e:
-            raise(SchemaError(e))
+            raise(SchemaError(e.message))
 
     @property
     def type(self):
