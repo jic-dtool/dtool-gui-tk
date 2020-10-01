@@ -42,6 +42,7 @@ class App(tk.Tk):
             self.labels[key].config({"text": f"{key} ({issues})"})
         else:
             self.metadata_entries[key].config({"background": "white"})
+            self.labels[key].config({"text": f"{key}"})
         return okay
 
     def setup_metadata(self):
