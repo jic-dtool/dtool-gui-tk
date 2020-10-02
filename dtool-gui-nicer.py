@@ -227,7 +227,9 @@ class App(tk.Tk):
         self.list_datasets_btn.pack()
 
     def open_create_dataset_window(self):
-        DataSetCreationWindow().grab_set()
+        self.dataset_creation_window = DataSetCreationWindow()
+        self.dataset_creation_window.focus_set()
+        self.dataset_creation_window.grab_set()
 
     def open_list_datasets_window(self):
         ListDataSetsWindow().grab_set()

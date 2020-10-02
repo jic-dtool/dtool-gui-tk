@@ -107,6 +107,12 @@ Update Delete (CRUD) functionality to manage:
 - Flat metadata schemas
 - Dataset metadata
 
+This means that there will be three models.
+
+- ``BaseURIModel``
+- ``MetadataModel``
+- ``DatasetModel``
+
 In later releases the ``Model`` will also include CRUD functionality to manage:
 
 - Remote base URI credentials
@@ -139,49 +145,72 @@ Support for JSON Schema in Python can be found in the
 Example code
 ------------
 
-The code below illustrates how to work with the ``Model`` class.
+The code below illustrates how to work with the ``BaseURIModel`` class.
 
 .. code-block:: python
 
-    >>> from dtool_gui import Model
-    >>> model = Model()
+    >>> from dtool_gui import BaseURIModel
+    >>> base_uri_model = BaseURIModel()
 
 The ``model`` instance can be used to manage base URIs.
 
 .. code-block:: python
 
-    >>> model.add_base_uri("file:///home/olssont/datasets")
-    >>> model.add_base_uri("s3://dtool-demo")
+    >>> base_uri_model.add_base_uri("file:///home/olssont/datasets")
+    >>> base_uri_model.add_base_uri("s3://dtool-demo")
     >>> assert model.list_base_uris() == ["file:///home/olssont/datasets", "s3://dtool-demo"]
-    >>> model.update_base_uri("s3://dtool-demo", "s3://dtool-testing")
+    >>> base_uri_model.update_base_uri("s3://dtool-demo", "s3://dtool-testing")
     >>> assert model.list_base_uris() == ["file:///home/olssont/datasets", "s3://dtool-testing"]
-    >>> model.delete_base_uri("s3://dtool-testing")
+    >>> base_uri_model.delete_base_uri("s3://dtool-testing")
     >>> assert model.list_base_uris() == ["file:///home/olssont/datasets"]
 
-The ``model`` instance can also be used to manage and work with schema items.
+The ``MetadataModel`` is used to manage and work with schema items.
 The code below adds three metadata schema items.
 
 .. code-block:: python
 
-    >>> model.add_schema_item(key_name="project", schema={"type": "string"})
-    >>> model.add_schema_item(key_name="age", schema={"type": "integer"})
-    >>> model.add_schema_item(key_name="nucleic_acid_type", schema={"type": "string", "enum": ["DNA", "RNA"]})
+    >>> from dtool_gui import MetadataModel
+    >>> metadata_model = MetadataModel()
+    >>> metadata_model.add_schema_item(key_name="project", schema={"type": "string"})
+    >>> metadata_model.add_schema_item(key_name="age", schema={"type": "integer"})
+    >>> metadata_model.add_schema_item(key_name="nucleic_acid_type", schema={"type": "string", "enum": ["DNA", "RNA"]})
 
 It is possible to list the metadata schema items by name.
 
 .. code-block:: python
 
-    >>> model.metadata_schema.keys()
+    >>> metadata_model.metadata_schema.keys()
     ["age", "nucleic_acid_type", "project"]
 
 It is possible to work with a ``MetaDataSchemaItem`` instance.
 
 .. code-block:: python
 
-    >>> project_schema = model.metadata_schema["project"]
+    >>> project_schema = metadata_model.metadata_schema["project"]
     >>> print(project_schema.type)
     'string'
     >>> print(project_schema.options)
     None
-    >>> print(model.metadata_schema["nucleic_acid_type"].options)
+    >>> print(metadata_model.metadata_schema["nucleic_acid_type"].options)
     ["DNA", "RNA"]
+
+
+The ``ProtoDatasetModel`` and the ``DatasetModel`` models are used to work with dataset metadata.
+
+.. code-block:: python
+
+    >>> from dtool_gui import ProtoDatasetModel, DatasetModel
+    >>> proto_dataset_model = ProtoDatasetModel()
+    >>> proto_dataset_model.put_name("my-dataset")
+    >>> proto_dataset_model.set_metadata_model(metadata_model)
+    >>> proto_dataset_model.set_base_uri_model(base_uri_model)
+    >>> proto_dataset_model.set_input_directory("/home/olssont/my_data")
+    >>> if proto_dataset_model.metadata.is_okay():
+    ...     proto_dataset_model.create()
+    >>> dataset_model = DatasetModel()
+    >>> dataset_model.put_uri(proto_dataset_model.uri)
+    >>> print(dataset_model.get_name())
+    "my-dataset"
+    >>> dataset_model.put_name("new-name")
+    >>> print(dataset_model.get_name())
+    "new-name"
