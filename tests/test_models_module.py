@@ -21,3 +21,25 @@ def test_LocalBaseURIModel(tmp_dir_fixture):
 
     another_base_uri_model = LocalBaseURIModel(config_path=config_path)
     assert another_base_uri_model.get_base_uri() == base_uri_path
+
+
+def test_MetadataModel():
+
+    from models import MetadataModel
+
+
+    metadata_model = MetadataModel()
+
+    master_schema = {
+        "type": "object",
+        "properties": {
+            "project": {"type": "string", "minLenght": 3, "maxLength": 80},
+            "species": {"type": "string", "enum": ["A. australe", "A. barrelieri"]},
+            "age": {"type": "integer", "minimum": 0, "maximum": 90}
+        },
+        "required": ["project"]
+    }
+
+    metadata_model.load_master_schema(master_schema)
+
+    assert metadata_model.required == ["project"]

@@ -23,3 +23,14 @@ class LocalBaseURIModel(object):
             base_uri,
             self._config_path
         )
+
+
+class MetadataModel(object):
+    "Model for managing metadata."
+
+    def load_master_schema(self, master_schema):
+        self._master_schema = master_schema
+
+    @property
+    def required(self):
+        return self._master_schema["required"]
