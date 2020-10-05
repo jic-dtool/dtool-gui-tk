@@ -32,5 +32,9 @@ class MetadataModel(object):
         self._master_schema = master_schema
 
     @property
-    def required(self):
+    def required_item_names(self):
         return self._master_schema["required"]
+
+    @property
+    def item_names(self):
+        return sorted(self._master_schema["properties"].keys())

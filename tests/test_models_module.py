@@ -42,4 +42,7 @@ def test_MetadataModel():
 
     metadata_model.load_master_schema(master_schema)
 
-    assert metadata_model.required == ["project"]
+    assert metadata_model.required_item_names == ["project"]
+
+    expected_item_names = sorted(master_schema["properties"].keys())
+    assert metadata_model.item_names == expected_item_names
