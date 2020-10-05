@@ -10,24 +10,37 @@ from dtoolcore.utils import (
     windows_to_unix_path,
 )
 
+from models import LocalBaseURIModel
+
 logger = logging.getLogger(__name__)
 
 
 HOME_DIR = os.path.expanduser("~")
 CUR_DIR = os.getcwd()
 JUNK_DIR = os.path.join(HOME_DIR, "junk")
+CONFIG_DIR = os.path.join(HOME_DIR, ".config")
+CONFIG_PATH = os.path.join(CONFIG_DIR, "dtool-gui.json")
 
 
 class App(tk.Tk):
 
     def __init__(self):
         super().__init__()
+        self.local_base_uri_model = LocalBaseURIModel(CONFIG_PATH)
+
         self._data_directory = tk.StringVar()
         self._data_directory.set(CUR_DIR)
         logging.info(f"Data directory set to: {CUR_DIR}")
 
         dataset_name_lbl = tk.Label(text="Dataset name")
         self.dataset_name = tk.Entry(self)
+
+        self.base_uri_lbl = tk.Label(text=self.local_base_uri_model.get_base_uri())
+        self.base_uri_btn = tk.Button(
+            self,
+            text="Select local base URI directory",
+            command=self.select_local_base_uri_directory
+        )
 
         self.data_dir_lbl = tk.Label(text=self._data_directory.get())
         self.data_dir_btn = tk.Button(
@@ -63,7 +76,9 @@ class App(tk.Tk):
         self.metadata_value.grid(row=2, column=1)
         self.add_metadata_btn.grid(row=2, column=2)
         self.metadata_list_box.grid(row=3, column=0)
-        freeze_btn.grid(row=4, column=0, rowspan=3)
+        freeze_btn.grid(row=4, column=0, columnspan=3)
+        self.base_uri_lbl.grid(row=5, column=0)
+        self.base_uri_btn.grid(row=5, column=1)
 
     def select_data_directory(self):
         data_directory = fd.askdirectory(
@@ -74,6 +89,16 @@ class App(tk.Tk):
         self.data_dir_lbl.config(text=self._data_directory.get())
 
         logging.info(f"Data directory set to: {data_directory}")
+
+    def select_local_base_uri_directory(self):
+        base_uri_directory = fd.askdirectory(
+            title="Select local base URI directory",
+            initialdir=HOME_DIR
+        )
+        self.local_base_uri_model.put_base_uri(base_uri_directory)
+        self.base_uri_lbl.config(text=self.local_base_uri_model.get_base_uri())
+
+        logging.info(f"Local base URI directory set to: {self.local_base_uri_model.get_base_uri()}")
 
     def add_metadata(self):
         key = self._metadata_key.get()
