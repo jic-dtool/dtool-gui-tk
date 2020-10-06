@@ -15,6 +15,7 @@ def test_basic_string_metadata():
     assert not string_schema.is_okay(1)
 
 
+
 def test_enum_integer_metadata():
 
     from metadata import MetadataSchemaItem
@@ -62,3 +63,12 @@ def test_issues_method():
         '[1, 2, 4] is too long'
     ]
     assert sorted(issues, key=str) == expected_issues
+
+
+def test_schema_property():
+
+    from metadata import MetadataSchemaItem
+
+    schema = {"type": "integer", "enum": [1, 2, 3]}
+    metadata_schema_item = MetadataSchemaItem(schema)
+    assert metadata_schema_item.schema == schema

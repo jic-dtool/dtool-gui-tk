@@ -50,8 +50,13 @@ class MetadataSchemaItem(object):
     def enum(self):
         return self._schema.get("enum", None)
 
+    @property
+    def schema(self):
+        return self._schema
+
     def is_okay(self, value):
         return self._ivalidator.is_valid(value)
 
     def issues(self, value):
         return [i.message for i in self._ivalidator.iter_errors(value)]
+
