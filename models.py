@@ -34,17 +34,21 @@ class MetadataModel(object):
         self._metadata_schema_items = {}
 
     def load_master_schema(self, master_schema):
+        "Load JSON schema of an object describing the metadata model."
         self._master_schema = master_schema
         for name, schema in self._master_schema["properties"].items():
             self._metadata_schema_items[name] = MetadataSchemaItem(schema)
 
     @property
     def required_item_names(self):
+        "Return list of names of required metadata items."
         return self._master_schema["required"]
 
     @property
     def item_names(self):
+        "Return metadata names (keys)."
         return sorted(self._master_schema["properties"].keys())
 
     def get_schema(self, name):
+        "Return metadata schema."
         return self._metadata_schema_items[name]
