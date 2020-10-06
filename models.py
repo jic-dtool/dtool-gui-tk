@@ -32,6 +32,7 @@ class MetadataModel(object):
 
     def __init__(self):
         self._metadata_schema_items = {}
+        self._metadata_values = {}
 
     def load_master_schema(self, master_schema):
         "Load JSON schema of an object describing the metadata model."
@@ -52,3 +53,13 @@ class MetadataModel(object):
     def get_schema(self, name):
         "Return metadata schema."
         return self._metadata_schema_items[name]
+
+    def get_value(self, name):
+        "Return metadata value."
+        if name not in self._metadata_values:
+            return None
+        return self._metadata_values[name]
+
+    def set_value(self, name, value):
+        "Set the metadata value."
+        self._metadata_values[name] = value

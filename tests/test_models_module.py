@@ -55,3 +55,8 @@ def test_MetadataModel():
     project_metadata_schema_item = MetadataSchemaItem(project_schema)
     assert metadata_model.get_schema("project") == project_metadata_schema_item  # NOQA
 
+    # At this point no values for any metadata has been set.
+    assert metadata_model.get_value("project") is None
+
+    metadata_model.set_value("project", "dtool-gui")
+    assert metadata_model.get_value("project") == "dtool-gui"
