@@ -59,4 +59,3 @@ class MetadataSchemaItem(object):
 
     def issues(self, value):
         return [i.message for i in self._ivalidator.iter_errors(value)]
-
