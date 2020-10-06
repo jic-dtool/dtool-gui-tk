@@ -31,12 +31,12 @@ class MetadataModel(object):
     "Model for managing metadata."
 
     def __init__(self):
-        self.metadata_schema_items = {}
+        self._metadata_schema_items = {}
 
     def load_master_schema(self, master_schema):
         self._master_schema = master_schema
         for name, schema in self._master_schema["properties"].items():
-            self.metadata_schema_items[name] = MetadataSchemaItem(schema)
+            self._metadata_schema_items[name] = MetadataSchemaItem(schema)
 
     @property
     def required_item_names(self):
@@ -45,3 +45,6 @@ class MetadataModel(object):
     @property
     def item_names(self):
         return sorted(self._master_schema["properties"].keys())
+
+    def get_schema(self, name):
+        return self._metadata_schema_items[name]

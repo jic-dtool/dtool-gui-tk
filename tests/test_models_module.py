@@ -53,4 +53,5 @@ def test_MetadataModel():
     from metadata import MetadataSchemaItem
     project_schema = master_schema["properties"]["project"]
     project_metadata_schema_item = MetadataSchemaItem(project_schema)
-    assert metadata_model.metadata_schema_items["project"] == project_metadata_schema_item  # NOQA
+    assert metadata_model.get_schema("project") == project_metadata_schema_item  # NOQA
+
