@@ -37,8 +37,7 @@ class MetadataModel(object):
 
     def load_master_schema(self, master_schema):
         "Load JSON schema of an object describing the metadata model."
-        self._master_schema = master_schema
-        for name, schema in self._master_schema["properties"].items():
+        for name, schema in master_schema["properties"].items():
             self._metadata_schema_items[name] = MetadataSchemaItem(schema)
 
         for r in master_schema["required"]:
