@@ -4,7 +4,8 @@ import os
 
 from . import tmp_dir_fixture  # NOQA
 
-def test_LocalBaseURIModel(tmp_dir_fixture):
+
+def test_LocalBaseURIModel(tmp_dir_fixture):  # NOQA
 
     from models import LocalBaseURIModel
 
@@ -14,7 +15,7 @@ def test_LocalBaseURIModel(tmp_dir_fixture):
     base_uri_path = os.path.join(tmp_dir_fixture, "datasets")
 
     base_uri_model = LocalBaseURIModel(config_path=config_path)
-    assert base_uri_model.get_base_uri() == None
+    assert base_uri_model.get_base_uri() is None
 
     base_uri_model.put_base_uri(base_uri_path)
     assert os.path.isfile(config_path)
@@ -27,14 +28,16 @@ def test_MetadataModel():
 
     from models import MetadataModel
 
-
     metadata_model = MetadataModel()
 
     master_schema = {
         "type": "object",
         "properties": {
             "project": {"type": "string", "minLenght": 3, "maxLength": 80},
-            "species": {"type": "string", "enum": ["A. australe", "A. barrelieri"]},
+            "species": {
+                "type": "string",
+                "enum": ["A. australe", "A. barrelieri"]
+            },
             "age": {"type": "integer", "minimum": 0, "maximum": 90}
         },
         "required": ["project"]
@@ -46,3 +49,8 @@ def test_MetadataModel():
 
     expected_item_names = sorted(master_schema["properties"].keys())
     assert metadata_model.item_names == expected_item_names
+
+    from metadata import MetadataSchemaItem
+    project_schema = master_schema["properties"]["project"]
+    project_metadata_schema_item = MetadataSchemaItem(project_schema)
+    assert metadata_model.metadata_schema_items["project"] == project_metadata_schema_item  # NOQA

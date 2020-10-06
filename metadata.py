@@ -39,6 +39,9 @@ class MetadataSchemaItem(object):
         except jsonschema.exceptions.SchemaError as e:
             raise(SchemaError(e.message))
 
+    def __eq__(self, other):
+        return self._schema == other._schema
+
     @property
     def type(self):
         return self._schema["type"]

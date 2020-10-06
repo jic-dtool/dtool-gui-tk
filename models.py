@@ -1,6 +1,8 @@
 import dtoolcore.utils
 
-LOCAL_BASE_URI_KEY="DTOOL_LOCAL_BASE_URI"
+from metadata import MetadataSchemaItem
+
+LOCAL_BASE_URI_KEY = "DTOOL_LOCAL_BASE_URI"
 
 
 class LocalBaseURIModel(object):
@@ -28,8 +30,13 @@ class LocalBaseURIModel(object):
 class MetadataModel(object):
     "Model for managing metadata."
 
+    def __init__(self):
+        self.metadata_schema_items = {}
+
     def load_master_schema(self, master_schema):
         self._master_schema = master_schema
+        for name, schema in self._master_schema["properties"].items():
+            self.metadata_schema_items[name] = MetadataSchemaItem(schema)
 
     @property
     def required_item_names(self):
