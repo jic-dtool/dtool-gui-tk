@@ -58,5 +58,21 @@ def test_MetadataModel():
     # At this point no values for any metadata has been set.
     assert metadata_model.get_value("project") is None
 
+    # Test setting the project.
     metadata_model.set_value("project", "dtool-gui")
     assert metadata_model.get_value("project") == "dtool-gui"
+
+    # Test updating the project.
+    metadata_model.set_value("project", "updated-name")
+    assert metadata_model.get_value("project") == "updated-name"
+
+    # It is possible to set values that would fail validation.
+    metadata_model.set_value("age", "not a number")
+    assert metadata_model.get_value("age") == "not a number"
+
+    # It is up to the client to check that the value is valid.
+    assert not metadata_model.is_okay("age")
+
+    # Fix the metadata and check again.
+    metadata_model.set_value("age", 10)
+    assert metadata_model.is_okay("age")

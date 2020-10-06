@@ -63,3 +63,9 @@ class MetadataModel(object):
     def set_value(self, name, value):
         "Set the metadata value."
         self._metadata_values[name] = value
+
+    def is_okay(self, name):
+        "Validate the metadata value against its schema."
+        schema = self.get_schema(name)
+        value = self.get_value(name)
+        return schema.is_okay(value)
