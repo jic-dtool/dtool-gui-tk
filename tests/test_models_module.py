@@ -76,3 +76,53 @@ def test_MetadataModel():
     # Fix the metadata and check again.
     metadata_model.set_value("age", 10)
     assert metadata_model.is_okay("age")
+
+    # Check that generated master schema matches the input master schema.
+    assert metadata_model.get_master_schema() == master_schema
+
+
+def test_MetadataModelSchemaBuilderAPI():
+
+    from models import MetadataModel
+
+    metadata_model = MetadataModel()
+    assert metadata_model.required_item_names == []
+    assert metadata_model.item_names == []
+
+    # Initially the metadata model has not got any "properties".
+    empty_schema = {
+        "type": "object",
+        "properties": {},
+        "required": []
+    }
+    assert metadata_model.get_master_schema() == empty_schema
+
+    # Add some "properties" to the master metadata schema.
+    project_schema = {"type": "string", "minLength": 3, "maxLength": 80}
+    metadata_model.add_metadata_property(
+        name="project",
+        schema=project_schema,
+        required=True
+    )
+    metadata_model.add_metadata_property(
+        name="age",
+        schema={"type": "integer", "minimum": 0, "maximum": 90},
+        required=False
+    )
+
+    assert metadata_model.required_item_names == ["project"]
+    assert metadata_model.item_names == ["age", "project"]
+
+    from metadata import MetadataSchemaItem
+    project_metadata_schema_item = MetadataSchemaItem(project_schema)
+    assert metadata_model.get_schema("project") == project_metadata_schema_item  # NOQA
+
+    populated_schema = {
+        "type": "object",
+        "properties": {
+            "project": {"type": "string", "minLength": 3, "maxLength": 80},
+            "age": {"type": "integer", "minimum": 0, "maximum": 90}
+        },
+        "required": ["project"]
+    }
+    assert metadata_model.get_master_schema() == populated_schema

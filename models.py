@@ -33,6 +33,7 @@ class MetadataModel(object):
     def __init__(self):
         self._metadata_schema_items = {}
         self._metadata_values = {}
+        self._required_item_names = set()
 
     def load_master_schema(self, master_schema):
         "Load JSON schema of an object describing the metadata model."
@@ -40,15 +41,18 @@ class MetadataModel(object):
         for name, schema in self._master_schema["properties"].items():
             self._metadata_schema_items[name] = MetadataSchemaItem(schema)
 
+        for r in master_schema["required"]:
+            self._required_item_names.add(r)
+
     @property
     def required_item_names(self):
         "Return list of names of required metadata items."
-        return self._master_schema["required"]
+        return sorted(list(self._required_item_names))
 
     @property
     def item_names(self):
         "Return metadata names (keys)."
-        return sorted(self._master_schema["properties"].keys())
+        return sorted(self._metadata_schema_items.keys())
 
     def get_schema(self, name):
         "Return metadata schema."
@@ -69,3 +73,24 @@ class MetadataModel(object):
         schema = self.get_schema(name)
         value = self.get_value(name)
         return schema.is_okay(value)
+
+    def get_master_schema(self):
+        "Return JSON schema of object describing the metadata model."
+        master_schema = {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+        for name in self.item_names:
+            schema_item = self._metadata_schema_items[name]
+            master_schema["properties"][name] = schema_item.schema
+        for name in self.required_item_names:
+            master_schema["required"].append(name)
+
+        return master_schema
+
+    def add_metadata_property(self, name, schema={}, required=False):
+        "Add a metadata property to the master schema."
+        self._metadata_schema_items[name] = MetadataSchemaItem(schema)
+        if required:
+            self._required_item_names.add(name)
