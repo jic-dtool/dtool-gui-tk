@@ -33,7 +33,7 @@ def test_MetadataModel():
     master_schema = {
         "type": "object",
         "properties": {
-            "project": {"type": "string", "minLenght": 3, "maxLength": 80},
+            "project": {"type": "string", "minLength": 3, "maxLength": 80},
             "species": {
                 "type": "string",
                 "enum": ["A. australe", "A. barrelieri"]
