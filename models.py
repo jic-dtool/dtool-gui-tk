@@ -114,12 +114,12 @@ class MetadataModel(object):
         value = self.get_value(name)
         return schema.is_okay(value)
 
-    def select_optional_item_name(self, name):
+    def select_optional_item(self, name):
         "Mark an optinal metadata item as selected."
         if name in self.optional_item_names:
             self._selected_optional_item_names.add(name)
 
-    def deselect_optional_item_name(self, name):
+    def deselect_optional_item(self, name):
         "Mark an optinal metadata item as not selected."
         if name in self.selected_optional_item_names:
             self._selected_optional_item_names.remove(name)

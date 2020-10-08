@@ -157,25 +157,25 @@ def test_MetadataModel_selected_API():
     assert metadata_model.deselected_optional_item_names == ["age", "species"]
 
     # Select and optional item.
-    metadata_model.select_optional_item_name("species")
+    metadata_model.select_optional_item("species")
     assert metadata_model.optional_item_names == ["age", "species"]
     assert metadata_model.selected_optional_item_names == ["species"]
     assert metadata_model.deselected_optional_item_names == ["age"]
 
     # Do nothing quietly if the same action is called again.
-    metadata_model.select_optional_item_name("species")
+    metadata_model.select_optional_item("species")
     assert metadata_model.optional_item_names == ["age", "species"]
     assert metadata_model.selected_optional_item_names == ["species"]
     assert metadata_model.deselected_optional_item_names == ["age"]
 
     # Deselect an optional item.
-    metadata_model.deselect_optional_item_name("species")
+    metadata_model.deselect_optional_item("species")
     assert metadata_model.optional_item_names == ["age", "species"]
     assert metadata_model.selected_optional_item_names == []
     assert metadata_model.deselected_optional_item_names == ["age", "species"]
 
     # Do nothing quietly if the same action is called again.
-    metadata_model.deselect_optional_item_name("species")
+    metadata_model.deselect_optional_item("species")
     assert metadata_model.optional_item_names == ["age", "species"]
     assert metadata_model.selected_optional_item_names == []
     assert metadata_model.deselected_optional_item_names == ["age", "species"]
