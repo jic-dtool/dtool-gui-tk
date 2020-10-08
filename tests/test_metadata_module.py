@@ -15,7 +15,6 @@ def test_basic_string_metadata():
     assert not string_schema.is_okay(1)
 
 
-
 def test_enum_integer_metadata():
 
     from metadata import MetadataSchemaItem
