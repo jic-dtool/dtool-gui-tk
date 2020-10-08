@@ -25,7 +25,7 @@ class OptionalMetadataFrame(tk.Frame):
         super().__init__(master)
         self.master = master
         self.label_frame = tk.LabelFrame(self, text="Optional Metadata")
-        self.label_frame.pack(side=tk.LEFT)
+        self.label_frame.pack(side=tk.LEFT, fill=tk.Y)
         self.setup_optional_metadata_listbox(0, 0)
 
     def setup_optional_metadata_listbox(self, row, column):
@@ -57,7 +57,7 @@ class MetadataFormFrame(tk.Frame):
         self.master = master
         self.labels = {}
         self.label_frame = tk.LabelFrame(self, text="MetadataForm")
-        self.label_frame.pack(side=tk.LEFT)
+        self.label_frame.pack(side=tk.LEFT, fill=tk.Y)
         self.repopulate(0, 0)
 
     def repopulate(self, row, column):
@@ -98,8 +98,8 @@ class App(tk.Tk):
         self.optional_metadata_frame = OptionalMetadataFrame(self)
         self.metadata_form_frame = MetadataFormFrame(self)
 
-        self.optional_metadata_frame.pack(side=tk.LEFT)
-        self.metadata_form_frame.pack(side=tk.LEFT)
+        self.optional_metadata_frame.pack(side=tk.LEFT, fill=tk.Y)
+        self.metadata_form_frame.pack(side=tk.LEFT, fill=tk.Y)
 
 
     def repopulate(self):
