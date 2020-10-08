@@ -34,6 +34,12 @@ class MetadataModel(object):
         self._metadata_schema_items = {}
         self._metadata_values = {}
         self._required_item_names = set()
+        self._selected_optional_item_names = set()
+
+    @property
+    def item_names(self):
+        "Return metadata names (keys)."
+        return sorted(self._metadata_schema_items.keys())
 
     @property
     def required_item_names(self):
@@ -41,9 +47,23 @@ class MetadataModel(object):
         return sorted(list(self._required_item_names))
 
     @property
-    def item_names(self):
-        "Return metadata names (keys)."
-        return sorted(self._metadata_schema_items.keys())
+    def optional_item_names(self):
+        "Return list of names of optional metadata items."
+        all_set = set(self.item_names)
+        required_set = set(self.required_item_names)
+        return sorted(list(all_set - required_set))
+
+    @property
+    def selected_optional_item_names(self):
+        "Return list of names of selected optional metadata items."
+        return sorted(list(self._selected_optional_item_names))
+
+    @property
+    def deselected_optional_item_names(self):
+        "Return list of names of deselected optional metadata items."
+        optional_set = set(self.optional_item_names)
+        selected_set = set(self.selected_optional_item_names)
+        return sorted(list(optional_set - selected_set))
 
     def load_master_schema(self, master_schema):
         "Load JSON schema of an object describing the metadata model."
@@ -93,3 +113,13 @@ class MetadataModel(object):
         schema = self.get_schema(name)
         value = self.get_value(name)
         return schema.is_okay(value)
+
+    def select_optional_item_name(self, name):
+        "Mark an optinal metadata item as selected."
+        if name in self.optional_item_names:
+            self._selected_optional_item_names.add(name)
+
+    def deselect_optional_item_name(self, name):
+        "Mark an optinal metadata item as not selected."
+        if name in self.selected_optional_item_names:
+            self._selected_optional_item_names.remove(name)
