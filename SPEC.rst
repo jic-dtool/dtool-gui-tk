@@ -61,7 +61,7 @@ Metadata template creation red route
 Dora the data manager is helping Becky and the other biologists in the lab
 manage their data. She has helped them work out what types of datasets they will
 be creating and what metadata each type of dataset needs to have. In order to
-make it easier for the biologists Dexter works with them to create metadata
+make it easier for the biologists Dora works with them to create metadata
 templates for them, where, when possible, valid values are predefined.
 
 Dora works with Becky to create the template and clicks on the dtool-gui
@@ -77,6 +77,7 @@ The area with widgets for adding fields (2) to the template consists of:
 1. A text pane for the "Metadata key"
 2. Radio buttons where the metadata type can be specified (text, int, float)
 3. Radio buttons where the mode of entry can be specified (manual, select)
+4. A check box that can be ticked to mark the metadata as required
 4. "Add metadata field" button
 
 Dora starts off by typing "species" into the "Metadata key" text pane (1).
