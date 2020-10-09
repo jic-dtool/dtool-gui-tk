@@ -58,6 +58,14 @@ def string_to_typed(str_, type_):
         raise(UnsupportedTypeError(f"{type_} not supported yet"))
 
 
+def set_combobox_default_selection(combobox, choices, selected):
+    index = None
+    if selected is not None:
+        index = choices.index(str(selected))
+    if index is not None:
+        combobox.current(index)
+
+
 class OptionalMetadataFrame(tk.Frame):
 
     def __init__(self, master):
@@ -131,11 +139,7 @@ class MetadataFormFrame(tk.Frame):
     def setup_boolean_input_field(self, row, name, value):
         values = ["True", "False"]
         e = ttk.Combobox(self.label_frame, state="readonly", values=values)
-        index = None
-        if value is not None:
-            index = values.index(str(value))
-        if index is not None:
-            e.current(index)
+        set_combobox_default_selection(e, values, value)
         e.name = name
         e.bind("<<ComboboxSelected>>", self.value_update_event_focus_next)
         e.bind("<Return>", self.value_update_event_focus_next)
@@ -157,11 +161,7 @@ class MetadataFormFrame(tk.Frame):
         schema = self.master.metadata_model.get_schema(name)
         values = [str(v) for v in schema.enum]
         e = ttk.Combobox(self.label_frame, state="readonly", values=values)
-        index = None
-        if value is not None:
-            index = values.index(str(value))
-        if index is not None:
-            e.current(index)
+        set_combobox_default_selection(e, values, value)
         e.name = name
         e.bind("<<ComboboxSelected>>", self.value_update_event_focus_next)
         e.grid(row=row, column=1, sticky="ew")
@@ -170,6 +170,7 @@ class MetadataFormFrame(tk.Frame):
     def setup_input_field(self, row, name):
         schema = self.master.metadata_model.get_schema(name)
 
+        # Create the label.
         display_name = name
         if name in self.master.metadata_model.required_item_names:
             display_name = name + "*"
@@ -180,6 +181,7 @@ class MetadataFormFrame(tk.Frame):
         value = self.master.metadata_model.get_value(name)
         logger.info(f"Setup input field {name} current value {value}")
 
+        # Create the input field.
         if schema.type == "boolean":
             self.setup_boolean_input_field(row, name, value)
         elif schema.enum is None:
@@ -187,12 +189,14 @@ class MetadataFormFrame(tk.Frame):
         else:
             self.setup_enum_input_field(row, name, value)
 
+        # Add button to enable the removal of the field if it is optional.
         if name in self.master.metadata_model.optional_item_names:
             btn = tk.Button(self.label_frame, text="Remove")
             btn._name_to_clear = name
             btn.bind("<Button-1>", self.master.deselect_optional_metadata)
             btn.grid(row=row, column=2)
 
+        # Highlight input field if the value is invalid.
         background = "white"
         if value is not None and not self.master.metadata_model.is_okay(name):
             background = "pink"
