@@ -65,6 +65,26 @@ class MetadataModel(object):
         selected_set = set(self.selected_optional_item_names)
         return sorted(list(optional_set - selected_set))
 
+    @property
+    def in_scope_item_names(self):
+        "Return required and selected optional item names."
+        return self.required_item_names + self.selected_optional_item_names
+
+    @property
+    def issues(self):
+        """Return list of issues with metadata.
+        Only reports on issues that are required and optional metadata that has
+        been selected.
+        """
+        _issues = []
+        for item_name in self.in_scope_item_names:
+            schema = self.get_schema(item_name)
+            value = self.get_schema(item_name)
+            if value is not None:
+                for i in schema.issues(value):
+                    _issues.append(i)
+        return _issues
+
     def load_master_schema(self, master_schema):
         "Load JSON schema of an object describing the metadata model."
         for name, schema in master_schema["properties"].items():

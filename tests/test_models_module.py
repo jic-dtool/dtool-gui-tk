@@ -179,3 +179,32 @@ def test_MetadataModel_selected_API():
     assert metadata_model.optional_item_names == ["age", "species"]
     assert metadata_model.selected_optional_item_names == []
     assert metadata_model.deselected_optional_item_names == ["age", "species"]
+
+    # Required and selected metadata is "in scope" to be processed etc.
+    expected = metadata_model.required_item_names + metadata_model.selected_optional_item_names  # NOQA
+    assert metadata_model.in_scope_item_names == expected
+
+
+def test_MetadataModel_issues_API():
+
+    from models import MetadataModel
+
+    metadata_model = MetadataModel()
+
+    master_schema = {
+        "type": "object",
+        "properties": {
+            "project": {"type": "string", "minLength": 3, "maxLength": 80},
+            "species": {
+                "type": "string",
+                "enum": ["A. australe", "A. barrelieri"]
+            },
+            "age": {"type": "integer", "minimum": 0, "maximum": 90}
+        },
+        "required": ["project"]
+    }
+
+    metadata_model.load_master_schema(master_schema)
+
+    metadata_model.set_value("project", "x")
+    assert len(metadata_model.issues) == 1
