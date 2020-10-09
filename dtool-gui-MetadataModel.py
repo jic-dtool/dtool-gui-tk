@@ -100,15 +100,33 @@ class MetadataFormFrame(tk.Frame):
         self.label_frame.pack(side=tk.LEFT, fill=tk.Y)
         self.repopulate()
 
-    def value_update_event(self, event):
+    def _value_update_event(self, event):
         widget = event.widget
+        name = widget.name
         value_as_str = widget.get()
-        schema = self.master.metadata_model.get_schema(widget.name)
+        schema = self.master.metadata_model.get_schema(name)
         value = string_to_typed(value_as_str, schema.type)
         logger.info(f"Set {widget.name} to {value}")
-        self.master.metadata_model.set_value(widget.name, value)
+        self.master.metadata_model.set_value(name, value)
         self.repopulate()
         self.master.issues_frame.report_issues()
+
+    def value_update_event_focus_in(self, event):
+        widget = event.widget
+        name = widget.name
+        self._value_update_event(event)
+        self.entries[name].focus_set()
+
+    def value_update_event_focus_next(self, event):
+        widget = event.widget
+        name = widget.name
+        self._value_update_event(event)
+        index = self.master.metadata_model.in_scope_item_names.index(name)
+        next_index = index + 1
+        if next_index >= len(self.master.metadata_model.in_scope_item_names):
+            next_index = 0
+        next_name = self.master.metadata_model.in_scope_item_names[next_index]
+        self.entries[next_name].focus_set()
 
     def setup_input_field(self, row, name):
         schema = self.master.metadata_model.get_schema(name)
@@ -132,7 +150,8 @@ class MetadataFormFrame(tk.Frame):
             if index is not None:
                 e.current(index)
             e.name = name
-            e.bind("<<ComboboxSelected>>", self.value_update_event)
+            e.bind("<<ComboboxSelected>>", self.value_update_event_focus_next)
+            e.bind("<Return>", self.value_update_event_focus_next)
             e.grid(row=row, column=1, sticky="ew")
             self.entries[name] = e
         elif schema.enum is None:
@@ -140,7 +159,9 @@ class MetadataFormFrame(tk.Frame):
             if value is not None:
                 e.insert(0, str(value))
             e.name = name
-            e.bind("<FocusOut>", self.value_update_event)
+            e.bind("<Button-1>", self.value_update_event_focus_in)
+            e.bind("<Return>", self.value_update_event_focus_next)
+            e.bind("<Tab>", self.value_update_event_focus_next)
             e.grid(row=row, column=1, sticky="ew")
             self.entries[name] = e
         else:
@@ -152,7 +173,7 @@ class MetadataFormFrame(tk.Frame):
             if index is not None:
                 e.current(index)
             e.name = name
-            e.bind("<<ComboboxSelected>>", self.value_update_event)
+            e.bind("<<ComboboxSelected>>", self.value_update_event_focus_next)
             e.grid(row=row, column=1, sticky="ew")
             self.entries[name] = e
 
@@ -229,6 +250,7 @@ class App(tk.Tk):
         logger.info(f"Selected optional metadata: {name}")
         self.metadata_model.select_optional_item(name)
         self.repopulate()
+        self.metadata_form_frame.entries[name].focus_set()
 
     def deselect_optional_metadata(self, event):
         widget = event.widget
