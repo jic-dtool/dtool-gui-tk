@@ -128,6 +128,45 @@ class MetadataFormFrame(tk.Frame):
         next_name = self.master.metadata_model.in_scope_item_names[next_index]
         self.entries[next_name].focus_set()
 
+    def setup_boolean_input_field(self, row, name, value):
+        values = ["True", "False"]
+        e = ttk.Combobox(self.label_frame, state="readonly", values=values)
+        index = None
+        if value is not None:
+            index = values.index(str(value))
+        if index is not None:
+            e.current(index)
+        e.name = name
+        e.bind("<<ComboboxSelected>>", self.value_update_event_focus_next)
+        e.bind("<Return>", self.value_update_event_focus_next)
+        e.grid(row=row, column=1, sticky="ew")
+        self.entries[name] = e
+
+    def setup_entry_input_field(self, row, name, value):
+        e = tk.Entry(self.label_frame)
+        if value is not None:
+            e.insert(0, str(value))
+        e.name = name
+        e.bind("<Button-1>", self.value_update_event_focus_in)
+        e.bind("<Return>", self.value_update_event_focus_next)
+        e.bind("<Tab>", self.value_update_event_focus_next)
+        e.grid(row=row, column=1, sticky="ew")
+        self.entries[name] = e
+
+    def setup_enum_input_field(self, row, name, value):
+        schema = self.master.metadata_model.get_schema(name)
+        values = [str(v) for v in schema.enum]
+        e = ttk.Combobox(self.label_frame, state="readonly", values=values)
+        index = None
+        if value is not None:
+            index = values.index(str(value))
+        if index is not None:
+            e.current(index)
+        e.name = name
+        e.bind("<<ComboboxSelected>>", self.value_update_event_focus_next)
+        e.grid(row=row, column=1, sticky="ew")
+        self.entries[name] = e
+
     def setup_input_field(self, row, name):
         schema = self.master.metadata_model.get_schema(name)
 
@@ -142,40 +181,11 @@ class MetadataFormFrame(tk.Frame):
         logger.info(f"Setup input field {name} current value {value}")
 
         if schema.type == "boolean":
-            values = ["True", "False"]
-            e = ttk.Combobox(self.label_frame, state="readonly", values=values)
-            index = None
-            if value is not None:
-                index = values.index(str(value))
-            if index is not None:
-                e.current(index)
-            e.name = name
-            e.bind("<<ComboboxSelected>>", self.value_update_event_focus_next)
-            e.bind("<Return>", self.value_update_event_focus_next)
-            e.grid(row=row, column=1, sticky="ew")
-            self.entries[name] = e
+            self.setup_boolean_input_field(row, name, value)
         elif schema.enum is None:
-            e = tk.Entry(self.label_frame)
-            if value is not None:
-                e.insert(0, str(value))
-            e.name = name
-            e.bind("<Button-1>", self.value_update_event_focus_in)
-            e.bind("<Return>", self.value_update_event_focus_next)
-            e.bind("<Tab>", self.value_update_event_focus_next)
-            e.grid(row=row, column=1, sticky="ew")
-            self.entries[name] = e
+            self.setup_entry_input_field(row, name, value)
         else:
-            values = [str(v) for v in schema.enum]
-            e = ttk.Combobox(self.label_frame, state="readonly", values=values)
-            index = None
-            if value is not None:
-                index = values.index(str(value))
-            if index is not None:
-                e.current(index)
-            e.name = name
-            e.bind("<<ComboboxSelected>>", self.value_update_event_focus_next)
-            e.grid(row=row, column=1, sticky="ew")
-            self.entries[name] = e
+            self.setup_enum_input_field(row, name, value)
 
         if name in self.master.metadata_model.optional_item_names:
             btn = tk.Button(self.label_frame, text="Remove")
