@@ -79,10 +79,10 @@ class MetadataModel(object):
         _issues = []
         for item_name in self.in_scope_item_names:
             schema = self.get_schema(item_name)
-            value = self.get_schema(item_name)
+            value = self.get_value(item_name)
             if value is not None:
                 for i in schema.issues(value):
-                    _issues.append(i)
+                    _issues.append((item_name, str(i)))
         return _issues
 
     def load_master_schema(self, master_schema):

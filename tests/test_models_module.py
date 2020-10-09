@@ -208,3 +208,4 @@ def test_MetadataModel_issues_API():
 
     metadata_model.set_value("project", "x")
     assert len(metadata_model.issues) == 1
+    assert metadata_model.issues[0] == ("project", "'x' is too short")
