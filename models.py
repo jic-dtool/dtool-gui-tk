@@ -1,8 +1,14 @@
+import os
+
 import dtoolcore.utils
 
 from metadata import MetadataSchemaItem
 
 LOCAL_BASE_URI_KEY = "DTOOL_LOCAL_BASE_URI"
+
+
+class DirectoryDoesNotExistError(IOError):
+    pass
 
 
 class LocalBaseURIModel(object):
@@ -22,7 +28,7 @@ class LocalBaseURIModel(object):
         """Put/update the base URI in the config file."""
         dtoolcore.utils.write_config_value_to_file(
             LOCAL_BASE_URI_KEY,
-            base_uri,
+            dtoolcore.utils.sanitise_uri(base_uri),
             self._config_path
         )
 
@@ -143,3 +149,37 @@ class MetadataModel(object):
         "Mark an optinal metadata item as not selected."
         if name in self.selected_optional_item_names:
             self._selected_optional_item_names.remove(name)
+
+
+class ProtoDataSetModel(object):
+    "Model for creating building up and creating a dataset."
+
+    def __init__(self):
+        self._name = None
+        self._input_directory = None
+
+    @property
+    def name(self):
+        "Return the name to use for the dataset."
+        return self._name
+
+    @property
+    def input_directory(self):
+        "Return the path to the input directory."
+        return self._input_directory
+
+    def set_name(self, name):
+        "Set the name to use for the dataset."
+        self._name = name
+
+    def set_input_directory(self, input_directory):
+        """Set the input directory for the dataset creation process.
+
+        :raises: dtool_gui.models.DirectoryDoesNotExistError if the input
+                 directory does not exist
+        """
+        if not os.path.isdir(input_directory):
+            raise(DirectoryDoesNotExistError(
+                "Cannot set input directory to: {}".format(input_directory)
+            ))
+        self._input_directory = input_directory

@@ -4,24 +4,30 @@ import os
 
 from . import tmp_dir_fixture  # NOQA
 
+import pytest
+
 
 def test_LocalBaseURIModel(tmp_dir_fixture):  # NOQA
 
     from models import LocalBaseURIModel
+    import dtoolcore.utils
+
 
     config_path = os.path.join(tmp_dir_fixture, "config.json")
     assert not os.path.isfile(config_path)
 
     base_uri_path = os.path.join(tmp_dir_fixture, "datasets")
+    base_uri = dtoolcore.utils.sanitise_uri(base_uri_path)
 
     base_uri_model = LocalBaseURIModel(config_path=config_path)
     assert base_uri_model.get_base_uri() is None
 
     base_uri_model.put_base_uri(base_uri_path)
     assert os.path.isfile(config_path)
+    assert base_uri_model.get_base_uri() == base_uri
 
     another_base_uri_model = LocalBaseURIModel(config_path=config_path)
-    assert another_base_uri_model.get_base_uri() == base_uri_path
+    assert another_base_uri_model.get_base_uri() == base_uri
 
 
 def test_MetadataModel():
@@ -209,3 +215,23 @@ def test_MetadataModel_issues_API():
     metadata_model.set_value("project", "x")
     assert len(metadata_model.issues) == 1
     assert metadata_model.issues[0] == ("project", "'x' is too short")
+
+
+def test_ProtoDataSetModel(tmp_dir_fixture):  # NOQA
+
+    from models import ProtoDataSetModel
+
+    proto_dataset_model = ProtoDataSetModel()
+
+    assert proto_dataset_model.name is None
+    proto_dataset_model.set_name("my-dataset")
+    assert proto_dataset_model.name == "my-dataset"
+
+    assert proto_dataset_model.input_directory is None
+    proto_dataset_model.set_input_directory(tmp_dir_fixture)
+    assert proto_dataset_model.input_directory == tmp_dir_fixture
+
+    from models import DirectoryDoesNotExistError
+    with pytest.raises(DirectoryDoesNotExistError):
+        proto_dataset_model.set_input_directory("does not exist")
+    assert proto_dataset_model.input_directory == tmp_dir_fixture
