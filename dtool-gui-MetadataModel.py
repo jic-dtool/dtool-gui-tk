@@ -2,6 +2,7 @@
 
 import logging
 import tkinter as tk
+import tkinter.ttk as ttk
 
 from models import MetadataModel
 
@@ -13,9 +14,10 @@ MASTER_SCHEMA = {
     "properties": {
         "gears": {"type": "integer", "enum": [1, 3, 6, 18]},
         "age": {"type": "integer", "exclusiveMinimum": 0},
-        "owner": {"type": "string"}
+        "owner": {"type": "string", "minLength": 4},
+        "project": {"type": "string", "minLength": 4}
     },
-    "required": ["owner"]
+    "required": ["project", "owner"]
 }
 
 
@@ -56,34 +58,92 @@ class MetadataFormFrame(tk.Frame):
         super().__init__(master)
         self.master = master
         self.labels = {}
+        self.entries = {}
         self.label_frame = tk.LabelFrame(self, text="MetadataForm")
         self.label_frame.pack(side=tk.LEFT, fill=tk.Y)
-        self.repopulate(0, 0)
+        self.repopulate()
 
-    def repopulate(self, row, column):
+    def value_update_event(self, event):
+        widget = event.widget
+        value = widget.get()
+        logger.info(f"Set {widget.name} to {value}")
+        self.master.metadata_model.set_value(widget.name, value)
+        self.repopulate()
+        self.master.issues_frame.report_issues()
+
+    def setup_input_field(self, row, name):
+        schema = self.master.metadata_model.get_schema(name)
+
+        display_name = name
+        if name in self.master.metadata_model.required_item_names:
+            display_name = name + "*"
+
+        lbl = tk.Label(self.label_frame, text=display_name)
+        lbl.grid(row=row, column=0, sticky="e")
+
+        value = self.master.metadata_model.get_value(name)
+        logger.info(f"Setup input field {name} current value {value}")
+        background = "white"
+        if value is not None and not self.master.metadata_model.is_okay(name):
+            background = "pink"
+
+        if schema.type == "boolean":
+            e = ttk.Combobox(self.label_frame, state="readonly", values=["True", "False"])
+            e.name = name
+            e.bind("<<ComboboxSelected>>", self.value_update_event)
+            e.grid(row=row, column=1, sticky="ew")
+            self.entries[name] = e
+        elif schema.enum is None:
+            e = tk.Entry(self.label_frame)
+            if value is not None:
+                e.insert(0, str(value))
+            e.name = name
+            e.bind("<FocusOut>", self.value_update_event)
+            e.grid(row=row, column=1, sticky="ew")
+            self.entries[name] = e
+        else:
+            e = ttk.Combobox(self.label_frame, state="readonly", values=schema.enum)
+            e.name = name
+            e.bind("<<ComboboxSelected>>", self.value_update_event)
+            e.grid(row=row, column=1, sticky="ew")
+            self.entries[name] = e
+
+        if name in self.master.metadata_model.optional_item_names:
+            btn = tk.Button(self.label_frame, text="Remove")
+            btn._name_to_clear = name
+            btn.bind("<Button-1>", self.master.deselect_optional_metadata)
+            btn.grid(row=row, column=2)
+
+
+    def repopulate(self):
 
         # Clear existing widgets.
         for widget in self.label_frame.winfo_children():
             widget.destroy()
 
-        initial_row = row
-        row_index = row
+        self.entries = {}
+
         for i, name in enumerate(
                 self.master.metadata_model.required_item_names \
                 + self.master.metadata_model.selected_optional_item_names
         ):
-            row_index = initial_row + i
-            display_name = name
-            if name in self.master.metadata_model.required_item_names:
-                display_name = name + "*"
-            lbl = tk.Label(self.label_frame, text=display_name)
-            if name in self.master.metadata_model.optional_item_names:
-                lbl.bind("<Button-1>", self.master.deselect_optional_metadata)
-            lbl.grid(row=row_index, column=column, sticky="e")
-            self.labels[name] = lbl
-            # self.setup_input_field(row, column, name)
+            self.setup_input_field(i, name)
 
-        return row_index + 1
+
+class IssuesFrame(tk.Frame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.master = master
+        self.label_frame = tk.LabelFrame(self, text="Validation issues")
+        self.issues_listbox = tk.Listbox(self.label_frame)
+        self.label_frame.pack(side=tk.LEFT, fill=tk.Y)
+        self.issues_listbox.pack(fill=tk.Y)
+
+    def report_issues(self):
+        any_issue = False
+        self.issues_listbox.delete(0, tk.END)
+        for name, issue in self.master.metadata_model.issues:
+            self.issues_listbox.insert(tk.END, f"{name}: {issue}")
 
 
 class App(tk.Tk):
@@ -97,18 +157,24 @@ class App(tk.Tk):
 
         self.optional_metadata_frame = OptionalMetadataFrame(self)
         self.metadata_form_frame = MetadataFormFrame(self)
+        import pdb; pdb.set_trace()
+        self.issues_frame = IssuesFrame(self)
 
         self.optional_metadata_frame.pack(side=tk.LEFT, fill=tk.Y)
         self.metadata_form_frame.pack(side=tk.LEFT, fill=tk.Y)
+        self.issues_frame.pack(side=tk.LEFT, fill=tk.Y)
 
 
     def repopulate(self):
         self.optional_metadata_frame.repopulate()
-        self.metadata_form_frame.repopulate(0, 0)
+        self.metadata_form_frame.repopulate()
 
     def select_optional_metadata(self, event):
         widget = event.widget
-        index = int(widget.curselection()[0])
+        try:
+            index = int(widget.curselection()[0])
+        except IndexError:
+            return
         name = widget.get(index)
         logger.info(f"Selected optional metadata: {name}")
         self.metadata_model.select_optional_item(name)
@@ -116,7 +182,7 @@ class App(tk.Tk):
 
     def deselect_optional_metadata(self, event):
         widget = event.widget
-        name = widget.cget("text")
+        name = widget._name_to_clear
         logger.info(f"Deselected optional metadata: {name}")
         self.metadata_model.deselect_optional_item(name)
         self.repopulate()
