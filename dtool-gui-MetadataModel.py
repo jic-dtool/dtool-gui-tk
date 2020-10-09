@@ -15,10 +15,47 @@ MASTER_SCHEMA = {
         "gears": {"type": "integer", "enum": [1, 3, 6, 18]},
         "age": {"type": "integer", "exclusiveMinimum": 0},
         "owner": {"type": "string", "minLength": 4},
-        "project": {"type": "string", "minLength": 4}
+        "project": {"type": "string", "minLength": 4},
+        "pooled": {"type": "boolean"}
     },
-    "required": ["project", "owner"]
+    "required": ["project", "owner", "pooled"]
 }
+
+
+class UnsupportedTypeError(TypeError):
+    pass
+
+
+def string_to_typed(str_, type_):
+    if type_ == "string":
+        if str_ == "":
+            return None
+        return str_
+    elif type_ == "integer":
+        try:
+            logger.info("Forcing type to integer")
+            return int(str_)
+        except ValueError:
+            logger.warning("Could not force to integer")
+            return None
+    elif type_ == "number":
+        try:
+            logger.info("Forcing type to float")
+            return float(str_)
+        except ValueError:
+            logger.warning("Could not force to float")
+            return None
+    elif type_ == "boolean":
+        logger.info("Forcing type to bool")
+        if str_ == "True":
+            return True
+        elif str_ == "False":
+            return False
+        else:
+            logger.warning("Could not force to bool")
+            return None
+    else:
+        raise(UnsupportedTypeError(f"{type_} not supported yet"))
 
 
 class OptionalMetadataFrame(tk.Frame):
@@ -65,7 +102,9 @@ class MetadataFormFrame(tk.Frame):
 
     def value_update_event(self, event):
         widget = event.widget
-        value = widget.get()
+        value_as_str = widget.get()
+        schema = self.master.metadata_model.get_schema(widget.name)
+        value = string_to_typed(value_as_str, schema.type)
         logger.info(f"Set {widget.name} to {value}")
         self.master.metadata_model.set_value(widget.name, value)
         self.repopulate()
@@ -83,12 +122,15 @@ class MetadataFormFrame(tk.Frame):
 
         value = self.master.metadata_model.get_value(name)
         logger.info(f"Setup input field {name} current value {value}")
-        background = "white"
-        if value is not None and not self.master.metadata_model.is_okay(name):
-            background = "pink"
 
         if schema.type == "boolean":
-            e = ttk.Combobox(self.label_frame, state="readonly", values=["True", "False"])
+            values = ["True", "False"]
+            e = ttk.Combobox(self.label_frame, state="readonly", values=values)
+            index = None
+            if value is not None:
+                index = values.index(str(value))
+            if index is not None:
+                e.current(index)
             e.name = name
             e.bind("<<ComboboxSelected>>", self.value_update_event)
             e.grid(row=row, column=1, sticky="ew")
@@ -102,7 +144,13 @@ class MetadataFormFrame(tk.Frame):
             e.grid(row=row, column=1, sticky="ew")
             self.entries[name] = e
         else:
-            e = ttk.Combobox(self.label_frame, state="readonly", values=schema.enum)
+            values = [str(v) for v in schema.enum]
+            e = ttk.Combobox(self.label_frame, state="readonly", values=values)
+            index = None
+            if value is not None:
+                index = values.index(str(value))
+            if index is not None:
+                e.current(index)
             e.name = name
             e.bind("<<ComboboxSelected>>", self.value_update_event)
             e.grid(row=row, column=1, sticky="ew")
@@ -114,6 +162,10 @@ class MetadataFormFrame(tk.Frame):
             btn.bind("<Button-1>", self.master.deselect_optional_metadata)
             btn.grid(row=row, column=2)
 
+        background = "white"
+        if value is not None and not self.master.metadata_model.is_okay(name):
+            background = "pink"
+        self.entries[name].config({"background": background})
 
     def repopulate(self):
 
@@ -124,7 +176,7 @@ class MetadataFormFrame(tk.Frame):
         self.entries = {}
 
         for i, name in enumerate(
-                self.master.metadata_model.required_item_names \
+                self.master.metadata_model.required_item_names
                 + self.master.metadata_model.selected_optional_item_names
         ):
             self.setup_input_field(i, name)
@@ -140,7 +192,6 @@ class IssuesFrame(tk.Frame):
         self.issues_listbox.pack(fill=tk.Y)
 
     def report_issues(self):
-        any_issue = False
         self.issues_listbox.delete(0, tk.END)
         for name, issue in self.master.metadata_model.issues:
             self.issues_listbox.insert(tk.END, f"{name}: {issue}")
@@ -157,17 +208,16 @@ class App(tk.Tk):
 
         self.optional_metadata_frame = OptionalMetadataFrame(self)
         self.metadata_form_frame = MetadataFormFrame(self)
-        import pdb; pdb.set_trace()
         self.issues_frame = IssuesFrame(self)
 
         self.optional_metadata_frame.pack(side=tk.LEFT, fill=tk.Y)
         self.metadata_form_frame.pack(side=tk.LEFT, fill=tk.Y)
         self.issues_frame.pack(side=tk.LEFT, fill=tk.Y)
 
-
     def repopulate(self):
         self.optional_metadata_frame.repopulate()
         self.metadata_form_frame.repopulate()
+        self.issues_frame.report_issues()
 
     def select_optional_metadata(self, event):
         widget = event.widget
