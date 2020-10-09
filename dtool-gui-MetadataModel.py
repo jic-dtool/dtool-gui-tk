@@ -80,9 +80,9 @@ class OptionalMetadataFrame(tk.Frame):
             column=column,
             rowspan=rowspan
         )
-        self.repopulate()
+        self.update()
 
-    def repopulate(self):
+    def update(self):
         self.optional_metadata_listbox.delete(0, tk.END)
         for name in self.master.metadata_model.deselected_optional_item_names:
             logger.info(f"Adding {name} to optional metadata listbox")
@@ -98,7 +98,7 @@ class MetadataFormFrame(tk.Frame):
         self.entries = {}
         self.label_frame = tk.LabelFrame(self, text="MetadataForm")
         self.label_frame.pack(side=tk.LEFT, fill=tk.Y)
-        self.repopulate()
+        self.update()
 
     def _value_update_event(self, event):
         widget = event.widget
@@ -108,8 +108,8 @@ class MetadataFormFrame(tk.Frame):
         value = string_to_typed(value_as_str, schema.type)
         logger.info(f"Set {widget.name} to {value}")
         self.master.metadata_model.set_value(name, value)
-        self.repopulate()
-        self.master.issues_frame.report_issues()
+        self.update()
+        self.master.issues_frame.update()
 
     def value_update_event_focus_in(self, event):
         widget = event.widget
@@ -188,7 +188,7 @@ class MetadataFormFrame(tk.Frame):
             background = "pink"
         self.entries[name].config({"background": background})
 
-    def repopulate(self):
+    def update(self):
 
         # Clear existing widgets.
         for widget in self.label_frame.winfo_children():
@@ -212,7 +212,7 @@ class IssuesFrame(tk.Frame):
         self.label_frame.pack(side=tk.LEFT, fill=tk.Y)
         self.issues_listbox.pack(fill=tk.Y)
 
-    def report_issues(self):
+    def update(self):
         self.issues_listbox.delete(0, tk.END)
         for name, issue in self.master.metadata_model.issues:
             self.issues_listbox.insert(tk.END, f"{name}: {issue}")
@@ -235,10 +235,10 @@ class App(tk.Tk):
         self.metadata_form_frame.pack(side=tk.LEFT, fill=tk.Y)
         self.issues_frame.pack(side=tk.LEFT, fill=tk.Y)
 
-    def repopulate(self):
-        self.optional_metadata_frame.repopulate()
-        self.metadata_form_frame.repopulate()
-        self.issues_frame.report_issues()
+    def update(self):
+        self.optional_metadata_frame.update()
+        self.metadata_form_frame.update()
+        self.issues_frame.update()
 
     def select_optional_metadata(self, event):
         widget = event.widget
@@ -249,7 +249,7 @@ class App(tk.Tk):
         name = widget.get(index)
         logger.info(f"Selected optional metadata: {name}")
         self.metadata_model.select_optional_item(name)
-        self.repopulate()
+        self.update()
         self.metadata_form_frame.entries[name].focus_set()
 
     def deselect_optional_metadata(self, event):
@@ -257,7 +257,7 @@ class App(tk.Tk):
         name = widget._name_to_clear
         logger.info(f"Deselected optional metadata: {name}")
         self.metadata_model.deselect_optional_item(name)
-        self.repopulate()
+        self.update()
 
 
 if __name__ == "__main__":
