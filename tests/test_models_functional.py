@@ -15,8 +15,9 @@ def test_create_dataset(tmp_dir_fixture):  # NOQA
 
     input_directory = os.path.join(tmp_dir_fixture, "input_directory")
     os.mkdir(input_directory)
+    item_content = "my data in a file"
     with open(os.path.join(input_directory, "data.txt"), "w") as fh:
-        fh.write("my data in a file")
+        fh.write(item_content)
 
     base_uri_directory = os.path.join(tmp_dir_fixture, "datasets")
     os.mkdir(base_uri_directory)
@@ -93,3 +94,8 @@ def test_create_dataset(tmp_dir_fixture):  # NOQA
 project: dtool-gui
 age: 5"""
     assert ds.get_readme_content() == expected_readme
+
+    assert len(ds.identifiers) == 1
+    identifier = list(ds.identifiers)[0]
+    with open(ds.item_content_abspath(identifier)) as fh:
+        assert item_content == fh.read()

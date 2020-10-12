@@ -211,6 +211,17 @@ class ProtoDataSetModel(object):
         "Return the URI of the created dataset."
         return self._uri
 
+    def _yield_path_handle_tuples(self):
+        path_length = len(self.input_directory) + 1
+
+        for dirpath, dirnames, filenames in os.walk(self.input_directory):
+            for fn in filenames:
+                path = os.path.join(dirpath, fn)
+                relative_path = path[path_length:]
+                if dtoolcore.utils.IS_WINDOWS:
+                    handle = dtoolcore.utils.windows_to_unix_path(relative_path)  # NOQA
+                yield (path, handle)
+
     def set_name(self, name):
         "Set the name to use for the dataset."
         self._name = name
@@ -289,5 +300,9 @@ class ProtoDataSetModel(object):
                 ds_creator.put_annotation(key, value)
                 readme_lines.append("{}: {}".format(key, value))
             ds_creator.put_readme("\n".join(readme_lines))
+
+            # Add data items.
+            for fpath, handle in self._yield_path_handle_tuples():
+                ds_creator.put_item(fpath, handle)
 
             self._uri = ds_creator.uri
