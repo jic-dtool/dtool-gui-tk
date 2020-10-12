@@ -2,6 +2,8 @@
 
 import os
 
+import dtoolcore.utils
+
 from . import tmp_dir_fixture  # NOQA
 
 import pytest
@@ -64,6 +66,6 @@ def test_create_dataset(tmp_dir_fixture):  # NOQA
     proto_dataset_model.create()
 
     expected_uri = dtoolcore.utils.sanitise_uri(
-        os.path.join(base_uri_directory, "dtool-gui")
+        os.path.join(base_uri_directory, "my-dataset")
     )
     assert proto_dataset_model.uri == expected_uri
