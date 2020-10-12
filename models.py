@@ -1,5 +1,6 @@
 import os
 
+import dtoolcore
 import dtoolcore.utils
 
 from metadata import MetadataSchemaItem
@@ -8,6 +9,30 @@ LOCAL_BASE_URI_KEY = "DTOOL_LOCAL_BASE_URI"
 
 
 class DirectoryDoesNotExistError(IOError):
+    pass
+
+
+class MetadataValidationError(ValueError):
+    pass
+
+
+class MissingBaseURIModelError(ValueError):
+    pass
+
+
+class MissingDataSetNameError(ValueError):
+    pass
+
+
+class MissingInputDirectoryError(ValueError):
+    pass
+
+
+class MissingMetadataModelError(ValueError):
+    pass
+
+
+class MissingRequiredMetadataError(ValueError):
     pass
 
 
@@ -157,6 +182,9 @@ class ProtoDataSetModel(object):
     def __init__(self):
         self._name = None
         self._input_directory = None
+        self._base_uri_model = None
+        self._metadata_model = None
+        self._uri = None
 
     @property
     def name(self):
@@ -164,9 +192,24 @@ class ProtoDataSetModel(object):
         return self._name
 
     @property
+    def base_uri(self):
+        "Return the base URI for the dataset."
+        return self._base_uri_model.get_base_uri()
+
+    @property
     def input_directory(self):
         "Return the path to the input directory."
         return self._input_directory
+
+    @property
+    def metadata_model(self):
+        "Return the metadata model."
+        return self._metadata_model
+
+    @property
+    def uri(self):
+        "Return the URI of the created dataset."
+        return self._uri
 
     def set_name(self, name):
         "Set the name to use for the dataset."
@@ -183,3 +226,59 @@ class ProtoDataSetModel(object):
                 "Cannot set input directory to: {}".format(input_directory)
             ))
         self._input_directory = input_directory
+
+    def set_base_uri_model(self, base_uri_model):
+        """Set the base URI model.
+
+        :params base_uri_model: dtool_gui.models.LocalBaseURIModel
+        """
+        self._base_uri_model = base_uri_model
+
+    def set_metadata_model(self, metadata_model):
+        """Set the metadata model.
+
+        :params metadata_model: dtool_gui.models.MetadataModel
+        """
+        self._metadata_model = metadata_model
+
+    def create(self):
+        """Create the dataset in the base URI.
+
+        :raises: dtool_gui.models.MissingInputDirectoryError if the input
+                 directory has not been set>
+                 dtool_gui.models.MissingDataSetNameError if the dataset
+                 name has not been set.
+                 dtool_gui.models.MissingBaseURIModelError if the base
+                 URI model has not been set.
+                 dtool_gui.models.MissingMetadataModelError if the metadata
+                 model has not been set.
+        """
+
+        if self._name is None:
+            raise(MissingDataSetNameError("Dataset name has not been set"))
+
+        if self._input_directory is None:
+            raise(MissingInputDirectoryError("Input directory has not been set"))
+
+        if self._base_uri_model is None:
+            raise(MissingBaseURIModelError("Base URI model has not been set"))
+
+        if self._metadata_model is None:
+            raise(MissingMetadataModelError("Metadata model has not been set"))
+
+        for name in self.metadata_model.required_item_names:
+            metadata = self.metadata_model.get_value(name)
+            if metadata is None:
+                raise(MissingRequiredMetadataError(
+                    "Missing required metadata: {}".format(name)
+                ))
+
+        for name in self.metadata_model.in_scope_item_names:
+            if not self.metadata_model.is_okay(name):
+                value = self.metadata_model.get_value(name)
+                raise(MetadataValidationError(
+                    "Metadata {} value not valid: {}".format(name, value)
+                ))
+
+        with dtoolcore.DataSetCreator(self.name, self.base_uri) as ds_creator:
+            self._uri = ds_creator.uri
