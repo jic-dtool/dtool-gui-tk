@@ -258,7 +258,7 @@ class ProtoDataSetModel(object):
             raise(MissingDataSetNameError("Dataset name has not been set"))
 
         if self._input_directory is None:
-            raise(MissingInputDirectoryError("Input directory has not been set"))
+            raise(MissingInputDirectoryError("Input directory has not been set"))  # NOQA
 
         if self._base_uri_model is None:
             raise(MissingBaseURIModelError("Base URI model has not been set"))
@@ -281,4 +281,13 @@ class ProtoDataSetModel(object):
                 ))
 
         with dtoolcore.DataSetCreator(self.name, self.base_uri) as ds_creator:
+
+            # Add metadata.
+            readme_lines = ["---"]
+            for key in self.metadata_model.in_scope_item_names:
+                value = self.metadata_model.get_value(key)
+                ds_creator.put_annotation(key, value)
+                readme_lines.append("{}: {}".format(key, value))
+            ds_creator.put_readme("\n".join(readme_lines))
+
             self._uri = ds_creator.uri

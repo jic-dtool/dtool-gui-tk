@@ -84,3 +84,12 @@ def test_create_dataset(tmp_dir_fixture):  # NOQA
         os.path.join(base_uri_directory, "my-dataset")
     )
     assert proto_dataset_model.uri == expected_uri
+
+    ds = dtoolcore.DataSet.from_uri(expected_uri)
+    assert ds.get_annotation("project") == "dtool-gui"
+    assert ds.get_annotation("age") == 5
+
+    expected_readme = """---
+project: dtool-gui
+age: 5"""
+    assert ds.get_readme_content() == expected_readme
