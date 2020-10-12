@@ -4,7 +4,7 @@ import logging
 import tkinter as tk
 import tkinter.ttk as ttk
 
-from models import MetadataModel
+from models import LocalBaseURIModel, MetadataModel, ProtoDataSetModel
 
 logger = logging.getLogger(__file__)
 
@@ -112,10 +112,7 @@ class MetadataFormFrame(tk.Frame):
         widget = event.widget
         name = widget.name
         value_as_str = widget.get()
-        schema = self.master.metadata_model.get_schema(name)
-        value = string_to_typed(value_as_str, schema.type)
-        logger.info(f"Set {widget.name} to {value}")
-        self.master.metadata_model.set_value(name, value)
+        self.master.metadata_model.set_value_from_str(name, value_as_str)
         self.update()
         self.master.issues_frame.update()
 
@@ -238,16 +235,32 @@ class App(tk.Tk):
         super().__init__()
         logger.info("Initialising GUI")
         self.title("MetadataModel spike GUI")
+
+        self.base_uri_model = LocalBaseURIModel()
+
         self.metadata_model = MetadataModel()
         self.metadata_model.load_master_schema(MASTER_SCHEMA)
+
+        self.proto_dataset_model = ProtoDataSetModel()
+        self.proto_dataset_model.set_base_uri_model(self.base_uri_model)
+        self.proto_dataset_model.set_metadata_model(self.metadata_model)
 
         self.optional_metadata_frame = OptionalMetadataFrame(self)
         self.metadata_form_frame = MetadataFormFrame(self)
         self.issues_frame = IssuesFrame(self)
 
+        label_frame = tk.LabelFrame(self, text="More stuff").pack(side=tk.TOP, fill=tk.X)
+        tk.Label(label_frame, text="Name").pack()
+        tk.Label(label_frame, text="Base URI").pack()
+        tk.Label(label_frame, text="Input directory").pack()
+
+        label_frame = tk.LabelFrame(self, text="More stuff").pack(side=tk.BOTTOM, fill=tk.X)
+        tk.Label(label_frame, text="Create Button here").pack(side=tk.BOTTOM)
+
         self.optional_metadata_frame.pack(side=tk.LEFT, fill=tk.Y)
         self.metadata_form_frame.pack(side=tk.LEFT, fill=tk.Y)
         self.issues_frame.pack(side=tk.LEFT, fill=tk.Y)
+
 
     def update(self):
         self.optional_metadata_frame.update()
