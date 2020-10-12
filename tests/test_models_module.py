@@ -12,7 +12,6 @@ def test_LocalBaseURIModel(tmp_dir_fixture):  # NOQA
     from models import LocalBaseURIModel
     import dtoolcore.utils
 
-
     config_path = os.path.join(tmp_dir_fixture, "config.json")
     assert not os.path.isfile(config_path)
 
@@ -260,7 +259,6 @@ def test_MetadataModel_str_to_typed():
     metadata_model.add_metadata_property("not_supported", {"type": "object"})
     with pytest.raises(UnsupportedTypeError):
         metadata_model.set_value_from_str("not_supported", {"age": 3})
-
 
 
 def test_ProtoDataSetModel(tmp_dir_fixture):  # NOQA
