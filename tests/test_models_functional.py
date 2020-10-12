@@ -32,6 +32,11 @@ def test_create_dataset(tmp_dir_fixture):  # NOQA
         schema={"type": "string", "maxLength": 10},
         required=True
     )
+    metadata_model.add_metadata_property(
+        name="age",
+        schema={"type": "integer", "maximum": 10},
+        required=False
+    )
 
     with pytest.raises(models.MissingDataSetNameError):
         proto_dataset_model.create()
@@ -56,8 +61,18 @@ def test_create_dataset(tmp_dir_fixture):  # NOQA
     with pytest.raises(models.MissingRequiredMetadataError):
         proto_dataset_model.create()
 
-    proto_dataset_model.metadata_model.set_value("project", "too-long-project-name")  # NOQA
+    proto_dataset_model.metadata_model.set_value("project", "dtool-gui")  # NOQA
+    proto_dataset_model.metadata_model.set_value("age", "not-an-integer")  # NOQA
+    proto_dataset_model.metadata_model.select_optional_item("age")
 
+    # Raises because "age" is not an integer.
+    with pytest.raises(models.MetadataValidationError):
+        proto_dataset_model.create()
+
+    proto_dataset_model.metadata_model.set_value("project", "too-long-project-name")  # NOQA
+    proto_dataset_model.metadata_model.set_value("age", 5)  # NOQA
+
+    # Raises because "project" name is too long"
     with pytest.raises(models.MetadataValidationError):
         proto_dataset_model.create()
 
