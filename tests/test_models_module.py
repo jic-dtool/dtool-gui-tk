@@ -217,6 +217,52 @@ def test_MetadataModel_issues_API():
     assert metadata_model.issues[0] == ("project", "'x' is too short")
 
 
+def test_MetadataModel_str_to_typed():
+    from models import MetadataModel, UnsupportedTypeError
+
+    master_schema = {
+        "type": "object",
+        "properties": {
+            "project": {"type": "string"},
+            "age": {"type": "integer"},
+            "time": {"type": "number"},
+            "is_amazing": {"type": "boolean"},
+        }
+    }
+    metadata_model = MetadataModel()
+    metadata_model.load_master_schema(master_schema)
+
+    metadata_model.set_value_from_str("project", "test")
+    assert isinstance(metadata_model.get_value("project"), str)
+
+    metadata_model.set_value_from_str("age", "2")
+    assert isinstance(metadata_model.get_value("age"), int)
+
+    metadata_model.set_value_from_str("time", "5")
+    assert isinstance(metadata_model.get_value("time"), float)
+
+    metadata_model.set_value_from_str("is_amazing", "True")
+    assert isinstance(metadata_model.get_value("is_amazing"), bool)
+
+    metadata_model.set_value_from_str("project", "")
+    assert metadata_model.get_value("project") is None
+
+    # If forced typing fails, set to None.
+    metadata_model.set_value_from_str("age", "not-an-integer")
+    assert metadata_model.get_value("age") is None
+
+    metadata_model.set_value_from_str("time", "not-a-float")
+    assert metadata_model.get_value("time") is None
+
+    metadata_model.set_value_from_str("is_amazing", "not-a-bool")
+    assert metadata_model.get_value("is_amazing") is None
+
+    metadata_model.add_metadata_property("not_supported", {"type": "object"})
+    with pytest.raises(UnsupportedTypeError):
+        metadata_model.set_value_from_str("not_supported", {"age": 3})
+
+
+
 def test_ProtoDataSetModel(tmp_dir_fixture):  # NOQA
 
     from models import ProtoDataSetModel

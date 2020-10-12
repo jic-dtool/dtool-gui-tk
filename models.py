@@ -1,9 +1,12 @@
 import os
+import logging
 
 import dtoolcore
 import dtoolcore.utils
 
 from metadata import MetadataSchemaItem
+
+logger = logging.getLogger(__name__)
 
 LOCAL_BASE_URI_KEY = "DTOOL_LOCAL_BASE_URI"
 
@@ -33,6 +36,10 @@ class MissingMetadataModelError(ValueError):
 
 
 class MissingRequiredMetadataError(ValueError):
+    pass
+
+
+class UnsupportedTypeError(TypeError):
     pass
 
 
@@ -121,8 +128,9 @@ class MetadataModel(object):
         for name, schema in master_schema["properties"].items():
             self._metadata_schema_items[name] = MetadataSchemaItem(schema)
 
-        for r in master_schema["required"]:
-            self._required_item_names.add(r)
+        if "required" in master_schema:
+            for r in master_schema["required"]:
+                self._required_item_names.add(r)
 
     def add_metadata_property(self, name, schema={}, required=False):
         "Add a metadata property to the master schema."
@@ -158,6 +166,40 @@ class MetadataModel(object):
     def set_value(self, name, value):
         "Set the metadata value."
         self._metadata_values[name] = value
+
+    def set_value_from_str(self, name, value_as_str):
+        "Set the metadata value from a string forcing the type."
+        type_ = self.get_schema(name).type
+        if type_ == "string":
+            if value_as_str == "":
+                self.set_value(name, None)
+            else:
+                self.set_value(name, value_as_str)
+        elif type_ == "integer":
+            try:
+                logger.info("Forcing type to integer")
+                self.set_value(name, int(value_as_str))
+            except ValueError:
+                logger.warning("Could not force to integer")
+                self.set_value(name, None)
+        elif type_ == "number":
+            try:
+                logger.info("Forcing type to float")
+                self.set_value(name, float(value_as_str))
+            except ValueError:
+                logger.warning("Could not force to float")
+                self.set_value(name, None)
+        elif type_ == "boolean":
+            logger.info("Forcing type to bool")
+            if value_as_str == "True":
+                self.set_value(name, True)
+            elif value_as_str == "False":
+                self.set_value(name, False)
+            else:
+                logger.warning("Could not force to bool")
+                self.set_value(name, None)
+        else:
+            raise(UnsupportedTypeError("{} not supported yet".format(type_)))
 
     def is_okay(self, name):
         "Validate the metadata value against its schema."
