@@ -1,13 +1,18 @@
 """Spike to experiment with MetadataModel class."""
 
+import os
 import logging
 import tkinter as tk
+import tkinter.filedialog as fd
 import tkinter.ttk as ttk
+
+import dtoolcore.utils
 
 from models import LocalBaseURIModel, MetadataModel, ProtoDataSetModel
 
 logger = logging.getLogger(__file__)
 
+HOME_DIR = os.path.expanduser("~")
 
 MASTER_SCHEMA = {
     "type": "object",
@@ -22,48 +27,126 @@ MASTER_SCHEMA = {
 }
 
 
-class UnsupportedTypeError(TypeError):
-    pass
-
-
-def string_to_typed(str_, type_):
-    if type_ == "string":
-        if str_ == "":
-            return None
-        return str_
-    elif type_ == "integer":
-        try:
-            logger.info("Forcing type to integer")
-            return int(str_)
-        except ValueError:
-            logger.warning("Could not force to integer")
-            return None
-    elif type_ == "number":
-        try:
-            logger.info("Forcing type to float")
-            return float(str_)
-        except ValueError:
-            logger.warning("Could not force to float")
-            return None
-    elif type_ == "boolean":
-        logger.info("Forcing type to bool")
-        if str_ == "True":
-            return True
-        elif str_ == "False":
-            return False
-        else:
-            logger.warning("Could not force to bool")
-            return None
-    else:
-        raise(UnsupportedTypeError(f"{type_} not supported yet"))
-
-
 def set_combobox_default_selection(combobox, choices, selected):
     index = None
     if selected is not None:
         index = choices.index(str(selected))
     if index is not None:
         combobox.current(index)
+
+
+class DataSetFrame(tk.Frame):
+
+    def __init__(self, master):
+        super().__init__(master)
+        self.master = master
+        self.label_frame = tk.LabelFrame(self, text="Dataset Info")
+        self.label_frame.pack()
+        self.entries = {}
+
+        self.update()
+
+    def validate_name_callback(self, name):
+        if (name is not None) and (len(name) > 0):
+            return dtoolcore.utils.name_is_valid(name)
+        return True
+
+    def update_name(self, event):
+        widget = event.widget
+        name = widget.get()
+        if (name is not None) and name != "":
+            logger.info(f"Setting dataset name to: {name}")
+            self.master.proto_dataset_model.set_name(name)
+        self.update()
+
+    def select_data_directory(self):
+        data_directory = fd.askdirectory(
+            title="Select data directory",
+            initialdir=HOME_DIR
+        )
+        self.master.proto_dataset_model.set_input_directory(data_directory)
+        logger.info(f"Data directory set to: {data_directory}")
+        self.update()
+
+    def select_local_base_uri_directory(self):
+        base_uri_directory = fd.askdirectory(
+            title="Select data directory",
+            initialdir=HOME_DIR
+        )
+        self.master.base_uri_model.put_base_uri(base_uri_directory)
+        logger.info(f"Local base URI directory set to: {base_uri_directory}")
+        self.update()
+
+    def setup_name_input_field(self, row):
+
+        vcmd = (self.master.register(self.validate_name_callback), "%P")
+        lbl = tk.Label(self.label_frame, text="Dataset Name")
+        entry = tk.Entry(
+            self.label_frame,
+            validate="key",
+            validatecommand=vcmd,
+        )
+
+        current_name = self.master.proto_dataset_model.name
+        if current_name is not None:
+            entry.insert(0, current_name)
+
+        entry.bind("<FocusOut>", self.update_name)
+        entry.bind("<Return>", self.update_name)
+        entry.bind("<Tab>", self.update_name)
+
+        lbl.grid(row=row, column=0)
+        entry.grid(row=row, column=1)
+
+    def setup_input_directory_field(self, row):
+        lbl = tk.Label(self.label_frame, text="Input data directory")
+        logger.info(f"Current input directory: {self.master.proto_dataset_model.input_directory}")
+        entry = tk.Entry(
+            self.label_frame,
+            )
+        current_input_dir = self.master.proto_dataset_model.input_directory
+        if current_input_dir is not None:
+            entry.insert(0, current_input_dir)
+        entry.configure(state="readonly")
+
+        btn = tk.Button(
+            self.label_frame,
+            text="Select data directory",
+            command=self.select_data_directory
+        )
+        lbl.grid(row=row, column=0)
+        entry.grid(row=row, column=1)
+        btn.grid(row=row, column=2)
+
+    def setup_local_base_uri_directory(self, row):
+        lbl = tk.Label(self.label_frame, text="Local base URI directory")
+        current_local_base_uri = self.master.base_uri_model.get_base_uri()
+        logger.info(f"Current local base URI directory: {current_local_base_uri}")
+        entry = tk.Entry(
+            self.label_frame,
+            )
+        if current_local_base_uri is not None:
+            entry.insert(0, current_local_base_uri)
+        entry.configure(state="readonly")
+
+        btn = tk.Button(
+            self.label_frame,
+            text="Select local base URI directory",
+            command=self.select_local_base_uri_directory
+        )
+        lbl.grid(row=row, column=0)
+        entry.grid(row=row, column=1)
+        btn.grid(row=row, column=2)
+
+
+    def update(self):
+
+        for widget in self.label_frame.winfo_children():
+            widget.destroy()
+
+        self.setup_name_input_field(0)
+        self.setup_input_directory_field(1)
+        self.setup_local_base_uri_directory(2)
 
 
 class OptionalMetadataFrame(tk.Frame):
@@ -249,13 +332,11 @@ class App(tk.Tk):
         self.metadata_form_frame = MetadataFormFrame(self)
         self.issues_frame = IssuesFrame(self)
 
-        label_frame = tk.LabelFrame(self, text="More stuff").pack(side=tk.TOP, fill=tk.X)
-        tk.Label(label_frame, text="Name").pack()
-        tk.Label(label_frame, text="Base URI").pack()
-        tk.Label(label_frame, text="Input directory").pack()
+        self.dataset_frame = DataSetFrame(self)
+        self.dataset_frame.pack(side=tk.TOP, fill=tk.X)
 
         label_frame = tk.LabelFrame(self, text="More stuff").pack(side=tk.BOTTOM, fill=tk.X)
-        tk.Label(label_frame, text="Create Button here").pack(side=tk.BOTTOM)
+        tk.Button(label_frame, text="Create", command=self.create).pack(side=tk.BOTTOM)
 
         self.optional_metadata_frame.pack(side=tk.LEFT, fill=tk.Y)
         self.metadata_form_frame.pack(side=tk.LEFT, fill=tk.Y)
@@ -285,6 +366,10 @@ class App(tk.Tk):
         logger.info(f"Deselected optional metadata: {name}")
         self.metadata_model.deselect_optional_item(name)
         self.update()
+
+    def create(self):
+        self.proto_dataset_model.create()
+        logger.info(f"Created dataset: {self.proto_dataset_model.uri}")
 
 
 if __name__ == "__main__":
