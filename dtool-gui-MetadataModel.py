@@ -17,13 +17,46 @@ HOME_DIR = os.path.expanduser("~")
 MASTER_SCHEMA = {
     "type": "object",
     "properties": {
-        "gears": {"type": "integer", "enum": [1, 3, 6, 18]},
+        "project": {"type": "string", "minLength": 3, "maxLength": 80},
+        "nucl_acid": {"type": "string", "enum": ["DNA", "RNA"]},
         "age": {"type": "integer", "exclusiveMinimum": 0},
-        "owner": {"type": "string", "minLength": 4},
-        "project": {"type": "string", "minLength": 4},
-        "pooled": {"type": "boolean"}
+        "temperature": {"type": "number", "enum": [4.0, 25.0]},
+        "pooled": {"type": "boolean"},
+        "species": {
+            "type": "string",
+            "enum": [
+                "A. australe",
+                "A. barrelieri",
+                "A. boissieri",
+                "A. charidemi",
+                "A. cirrhigerum",
+                "A. graniticum",
+                "A. hispanicum",
+                "A. latifolium",
+                "A. linkianum",
+                "A. litigiosum",
+                "A. majus",
+                "A. mollissimum",
+                "A. pseudomajus",
+                "A. rupestre",
+                "A. siculum",
+                "A. striatum",
+                "A. tortuosum",
+                "A. lopesianum",
+                "A. microphyllum",
+                "A. molle",
+                "A. pertegasii",
+                "A. pulverulentum",
+                "A. sempervirens",
+                "A. subbaeticum",
+                "A. valentinum",
+                "A. braun-blanquetii",
+                "A. grosii",
+                "A. meonanthum",
+            ]
+        }
     },
-    "required": ["project", "owner", "pooled"]
+    "required": ["project", "nucl_acid", "pooled", "species"]
 }
 
 
