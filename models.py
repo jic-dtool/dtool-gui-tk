@@ -1,5 +1,6 @@
 import os
 import logging
+import json
 
 import dtoolcore
 import dtoolcore.utils
@@ -43,26 +44,74 @@ class UnsupportedTypeError(TypeError):
     pass
 
 
-class LocalBaseURIModel(object):
-    "Model for managing local base URI."
+class _ConfigFileVariableBaseModel(object):
 
     def __init__(self, config_path=None):
         self._config_path = config_path
 
-    def get_base_uri(self):
+    def _get(self):
         """Return the base URI."""
         return dtoolcore.utils.get_config_value_from_file(
-            LOCAL_BASE_URI_KEY,
+            self.KEY,
             self._config_path
         )
 
-    def put_base_uri(self, base_uri):
+    def _put(self, value):
         """Put/update the base URI in the config file."""
         dtoolcore.utils.write_config_value_to_file(
-            LOCAL_BASE_URI_KEY,
-            dtoolcore.utils.sanitise_uri(base_uri),
+            self.KEY,
+            value,
             self._config_path
         )
+
+
+class LocalBaseURIModel(_ConfigFileVariableBaseModel):
+    "Model for managing local base URI."
+
+    KEY = "DTOOL_LOCAL_BASE_URI"
+
+    def get_base_uri(self):
+        """Return the base URI."""
+        return self._get()
+
+    def put_base_uri(self, base_uri):
+        """Put/update the base URI in the config file."""
+        value = dtoolcore.utils.sanitise_uri(base_uri)
+        self._put(value)
+
+
+class MetadataSchemaListModel(_ConfigFileVariableBaseModel):
+    "Model for managing list of metadata schama."
+
+    KEY = "DTOOL_METADATA_SCHEMA_DIRECTORY"
+
+    def get_metadata_schema_directory(self):
+        """Return the metadata schema directory."""
+        return self._get()
+
+    def put_metadata_schema_directory(self, metadata_schema_directory):
+        """Put/update the base URI in the config file."""
+        value = os.path.abspath(metadata_schema_directory)
+        self._put(value)
+
+    @property
+    def metadata_model_names(self):
+        """Return list of metadata model names."""
+        metadata_schema_directory = self.get_metadata_schema_directory()
+        if metadata_schema_directory is None:
+            return []
+        filenames = os.listdir(metadata_schema_directory)
+        return sorted([os.path.splitext(f)[0] for f in filenames])
+
+    def get_metadata_model(self, name):
+        """Returns class:`dtool_gui.models.MetadataModel` instance."""
+        metadata_schema_directory = self.get_metadata_schema_directory()
+        schema_fpath = os.path.join(metadata_schema_directory, name + ".json")
+        metadata_model = MetadataModel()
+        with open(schema_fpath) as fh:
+            master_schema = json.load(fh)
+        metadata_model.load_master_schema(master_schema)
+        return metadata_model
 
 
 class MetadataModel(object):
@@ -73,6 +122,17 @@ class MetadataModel(object):
         self._metadata_values = {}
         self._required_item_names = set()
         self._selected_optional_item_names = set()
+
+    def __eq__(self, other):
+        if not self._metadata_schema_items == other._metadata_schema_items:
+            return False
+        if not self._metadata_values == other._metadata_values:
+            return False
+        if not self._required_item_names == other._required_item_names:
+            return False
+        if not self._selected_optional_item_names == other._selected_optional_item_names:  # NOQA
+            return False
+        return True
 
     @property
     def item_names(self):

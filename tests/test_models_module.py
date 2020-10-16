@@ -21,6 +21,7 @@ def test_LocalBaseURIModel(tmp_dir_fixture):  # NOQA
     base_uri_model = LocalBaseURIModel(config_path=config_path)
     assert base_uri_model.get_base_uri() is None
 
+    # Configure the base URI.
     base_uri_model.put_base_uri(base_uri_path)
     assert os.path.isfile(config_path)
     assert base_uri_model.get_base_uri() == base_uri
@@ -322,3 +323,62 @@ def test_DataSetListModel(tmp_dir_fixture):  # NOQA
     # Get URI from name.
     for i, name in enumerate(dataset_list_model.names):
         assert dataset_list_model.get_uri(i) == dataset_uris[name]
+
+
+def test_MetadataSchemaListModel(tmp_dir_fixture):  # NOQA
+
+    from models import MetadataSchemaListModel
+
+    config_path = os.path.join(tmp_dir_fixture, "config.json")
+    assert not os.path.isfile(config_path)
+
+    metadata_schema_dir = os.path.join(tmp_dir_fixture, "metadata_schemas")
+    os.mkdir(metadata_schema_dir)
+
+    metadata_schema_list_model = MetadataSchemaListModel(config_path=config_path)  # NOQA
+    assert metadata_schema_list_model.get_metadata_schema_directory() is None
+    assert metadata_schema_list_model.metadata_model_names == []
+
+    # Configure the metadata schema directory.
+    metadata_schema_list_model.put_metadata_schema_directory(metadata_schema_dir)  # NOQA
+    assert os.path.isfile(config_path)
+    assert metadata_schema_list_model.get_metadata_schema_directory() == metadata_schema_dir  # NOQA
+
+    another_model = MetadataSchemaListModel(config_path=config_path)
+    assert another_model.get_metadata_schema_directory() == metadata_schema_dir
+
+    # Add a schema manually.
+    basic_schema = {
+        "type": "object",
+        "properties": {
+            "project": {"type": "string"}
+        }
+    }
+    import json
+    fpath = os.path.join(metadata_schema_dir, "basic.json")
+    with open(fpath, "w") as fh:
+        json.dump(basic_schema, fh)
+
+    assert another_model.metadata_model_names == ["basic"]
+
+    # Add another schema manually.
+    advanced_schema = {
+        "type": "object",
+        "properties": {
+            "project": {"type": "string", "minLength": 6, "maxLength": 80}
+        },
+        "required": ["project"]
+    }
+    fpath = os.path.join(metadata_schema_dir, "advanced.json")
+    with open(fpath, "w") as fh:
+        json.dump(advanced_schema, fh)
+
+    assert another_model.metadata_model_names == ["advanced", "basic"]
+
+    # Test schema retrieval.
+    from models import MetadataModel
+    advanced_model = MetadataModel()
+    advanced_model.load_master_schema(advanced_schema)
+
+    accessed_model = metadata_schema_list_model.get_metadata_model("advanced")  # NOQA
+    assert advanced_model == accessed_model
