@@ -348,3 +348,44 @@ class ProtoDataSetModel(object):
                 ds_creator.put_item(fpath, handle)
 
             self._uri = ds_creator.uri
+
+
+class DataSetListModel(object):
+    "Model for managing dataset in a base URI."
+
+    def __init__(self):
+        self._base_uri_model = None
+        self._datasets = []
+
+    @property
+    def base_uri(self):
+        "Return base URI."
+        if self._base_uri_model is None:
+            return None
+        return self._base_uri_model.get_base_uri()
+
+    @property
+    def names(self):
+        "Return list of dataset names."
+        return [ds.name for ds in self._datasets]
+
+    def set_base_uri_model(self, base_uri_model):
+        """Set the base URI model.
+
+        :params base_uri_model: dtool_gui.models.LocalBaseURIModel
+        """
+        self._base_uri_model = base_uri_model
+
+    def get_uri(self, index):
+        """Return the URI of the dataset at a specific index in the list.
+
+        :param index: position of dataset in list
+        """
+        return self._datasets[index].uri
+
+    def reindex(self):
+        """Index the base URI."""
+        self._datasets = []
+        base_uri = self._base_uri_model.get_base_uri()
+        for ds in dtoolcore.iter_datasets_in_base_uri(base_uri):
+            self._datasets.append(ds)

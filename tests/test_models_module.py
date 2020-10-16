@@ -279,3 +279,46 @@ def test_ProtoDataSetModel(tmp_dir_fixture):  # NOQA
     with pytest.raises(DirectoryDoesNotExistError):
         proto_dataset_model.set_input_directory("does not exist")
     assert proto_dataset_model.input_directory == tmp_dir_fixture
+
+
+def test_DataSetListModel(tmp_dir_fixture):  # NOQA
+
+    from models import DataSetListModel, LocalBaseURIModel
+
+    dataset_list_model = DataSetListModel()
+    assert dataset_list_model.base_uri is None
+
+    # Create and configure a base URI and BaseURIModel.
+    base_uri_directory = os.path.join(tmp_dir_fixture, "datasets")
+    os.mkdir(base_uri_directory)
+    config_path = os.path.join(tmp_dir_fixture, "dtool-gui.json")
+    base_uri_model = LocalBaseURIModel(config_path)
+    base_uri_model.put_base_uri(base_uri_directory)
+
+    # Add the base URI model to the dataset list model.
+    base_uri = base_uri_model.get_base_uri()
+    dataset_list_model.set_base_uri_model(base_uri_model)
+    assert dataset_list_model.base_uri == base_uri
+
+    assert len(dataset_list_model.names) == 0
+
+    # Create three empty datasets in the base URI.
+    from dtoolcore import DataSetCreator
+    dataset_names = sorted(["ds1", "ds2", "ds3"])
+    dataset_uris = {}
+    for name in dataset_names:
+        with DataSetCreator(name=name, base_uri=base_uri) as ds_creator:
+            dataset_uris[name] = ds_creator.uri
+
+    # Need to update the dataset list model for the datasets to be discovered.
+    assert len(dataset_list_model.names) == 0
+
+    # Update the dataset_list_model.
+    dataset_list_model.reindex()
+
+    # Access list of dataset names.
+    assert dataset_list_model.names == dataset_names
+
+    # Get URI from name.
+    for i, name in enumerate(dataset_list_model.names):
+        assert dataset_list_model.get_uri(i) == dataset_uris[name]
