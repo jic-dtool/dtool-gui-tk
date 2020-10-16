@@ -195,15 +195,16 @@ class MetadataFormFrame(tk.Frame):
         widget = event.widget
         name = widget.name
         value_as_str = widget.get()
-        self.master.metadata_model.set_value_from_str(name, value_as_str)
+        if (value_as_str is not None) and (value_as_str != ""):
+            logger.info(f"Setting {name} to: {value_as_str}")
+            self.master.metadata_model.set_value_from_str(name, value_as_str)
         self.update()
         self.master.issues_frame.update()
 
-    def value_update_event_focus_in(self, event):
+    def value_update_event_focus_out(self, event):
         widget = event.widget
         name = widget.name
         self._value_update_event(event)
-        self.entries[name].focus_set()
 
     def value_update_event_focus_next(self, event):
         widget = event.widget
@@ -231,7 +232,7 @@ class MetadataFormFrame(tk.Frame):
         if value is not None:
             e.insert(0, str(value))
         e.name = name
-        e.bind("<Button-1>", self.value_update_event_focus_in)
+        e.bind("<FocusOut>", self.value_update_event_focus_out)
         e.bind("<Return>", self.value_update_event_focus_next)
         e.bind("<Tab>", self.value_update_event_focus_next)
         e.grid(row=row, column=1, sticky="ew")
@@ -259,7 +260,6 @@ class MetadataFormFrame(tk.Frame):
         lbl.grid(row=row, column=0, sticky="e")
 
         value = self.master.metadata_model.get_value(name)
-        logger.info(f"Setup input field {name} current value {value}")
 
         # Create the input field.
         if schema.type == "boolean":
