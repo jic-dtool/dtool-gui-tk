@@ -6,25 +6,13 @@ import tkinter.filedialog as fd
 
 import dtoolcore
 import dtoolcore.utils
-from dtoolcore.utils import DEFAULT_CONFIG_PATH as CONFIG_PATH
+
+from models import LocalBaseURIModel, DataSetListModel
 
 logger = logging.getLogger(__file__)
 
 HOME_DIR = os.path.expanduser("~")
 JUNK_DIR = os.path.join(HOME_DIR, "junk")
-
-
-# TODO: this function should probably live in  dtoolcore along with a test.
-def iter_datasets_in_base_uri(base_uri):
-    """Yield frozen datasets in a base URI."""
-    base_uri = dtoolcore.utils.sanitise_uri(base_uri)
-    StorageBroker = dtoolcore._get_storage_broker(base_uri, CONFIG_PATH)
-    for uri in StorageBroker.list_dataset_uris(base_uri, CONFIG_PATH):
-        try:
-            dataset = dtoolcore.DataSet.from_uri(uri)
-            yield dataset
-        except dtoolcore.DtoolCoreTypeError:
-            pass
 
 
 def yield_path_handle_tuples(data_directory):
@@ -150,9 +138,10 @@ class MetaDataFrame(tk.Frame):
 
 class DataSetCreationWindow(tk.Tk):
 
-    def __init__(self):
+    def __init__(self, master):
         super().__init__()
         self.title("Create new dataset")
+        self.master = master
         self.dataset_name_frame = DataSetNameFrame(self)
         self.data_directory_frame = DataDirectoryFrame(self)
         self.metadata_frame = MetaDataFrame(self)
@@ -161,20 +150,20 @@ class DataSetCreationWindow(tk.Tk):
         self.data_directory_frame.pack()
         self.metadata_frame.pack()
 
-        self.base_uri = JUNK_DIR
         create_button = tk.Button(self, text="Create", command=self.create)
         create_button.pack()
 
     def create(self):
         dataset_name = self.dataset_name_frame.name
         data_directory = self.data_directory_frame.data_directory
+        base_uri = self.master.base_uri_model.get_base_uri()
 
-        logger.info(f"Creating {dataset_name} in {self.base_uri} using files in {data_directory}")  # NOQA
+        logger.info(f"Creating {dataset_name} in {base_uri} using files in {data_directory}")  # NOQA
 
         readme_lines = ["---"]
         with dtoolcore.DataSetCreator(
             name=dataset_name,
-            base_uri=self.base_uri
+            base_uri=base_uri
         ) as ds_creator:
             for fpath, handle in yield_path_handle_tuples(data_directory):
                 ds_creator.put_item(fpath, handle)
@@ -185,26 +174,27 @@ class DataSetCreationWindow(tk.Tk):
             dataset_uri = ds_creator.uri
 
         logger.info(f"Created dataset with URI: {dataset_uri}")
+        self.master.list_datasets_window.refresh_content()
 
 
 class ListDataSetsWindow(tk.Tk):
 
-    def __init__(self):
+    def __init__(self, master):
         super().__init__()
         self.title("List datasets")
 
-        self.base_uri = JUNK_DIR
-        self.datasets = dict()
+        self.master = master
         self.dataset_list_box = tk.Listbox(self)
         self.dataset_list_box.pack()
         self.refresh_content()
 
     def refresh_content(self):
+        logger.info(f"Refreshing content")
         self.dataset_list_box.delete(0, tk.END)
-        for ds in iter_datasets_in_base_uri(self.base_uri):
-            self.datasets[ds.name] = ds
-            self.dataset_list_box.insert(tk.END, ds.name)
-        logger.info(f"Loaded datasets: {self.datasets}")
+        self.master.dataset_list_model.reindex()
+        for name in self.master.dataset_list_model.names:
+            self.dataset_list_box.insert(tk.END, name)
+            logger.info(f"Loaded dataset: {name}")
 
 
 class App(tk.Tk):
@@ -212,6 +202,11 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("dtool-gui")
+
+        self.base_uri_model = LocalBaseURIModel()
+        self.dataset_list_model = DataSetListModel()
+        self.dataset_list_model.set_base_uri_model(self.base_uri_model)
+
         self.create_dataset_btn = tk.Button(
             self,
             text="Create new dataset",
@@ -227,12 +222,12 @@ class App(tk.Tk):
         self.list_datasets_btn.pack()
 
     def open_create_dataset_window(self):
-        self.dataset_creation_window = DataSetCreationWindow()
+        self.dataset_creation_window = DataSetCreationWindow(self)
         self.dataset_creation_window.focus_set()
-        self.dataset_creation_window.grab_set()
 
     def open_list_datasets_window(self):
-        ListDataSetsWindow().grab_set()
+        self.list_datasets_window = ListDataSetsWindow(self)
+        self.list_datasets_window.focus_set()
 
 
 if __name__ == "__main__":
