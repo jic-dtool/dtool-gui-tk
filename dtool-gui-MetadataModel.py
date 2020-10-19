@@ -8,56 +8,17 @@ import tkinter.ttk as ttk
 
 import dtoolcore.utils
 
-from models import LocalBaseURIModel, MetadataModel, ProtoDataSetModel
+from models import (
+    LocalBaseURIModel,
+    MetadataModel,
+    ProtoDataSetModel,
+    MetadataSchemaListModel,
+)
+
 
 logger = logging.getLogger(__file__)
 
 HOME_DIR = os.path.expanduser("~")
-
-MASTER_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "project": {"type": "string", "minLength": 3, "maxLength": 80},
-        "nucl_acid": {"type": "string", "enum": ["DNA", "RNA"]},
-        "age": {"type": "integer", "exclusiveMinimum": 0},
-        "temperature": {"type": "number", "enum": [4.0, 25.0]},
-        "pooled": {"type": "boolean"},
-        "species": {
-            "type": "string",
-            "enum": [
-                "A. australe",
-                "A. barrelieri",
-                "A. boissieri",
-                "A. charidemi",
-                "A. cirrhigerum",
-                "A. graniticum",
-                "A. hispanicum",
-                "A. latifolium",
-                "A. linkianum",
-                "A. litigiosum",
-                "A. majus",
-                "A. mollissimum",
-                "A. pseudomajus",
-                "A. rupestre",
-                "A. siculum",
-                "A. striatum",
-                "A. tortuosum",
-                "A. lopesianum",
-                "A. microphyllum",
-                "A. molle",
-                "A. pertegasii",
-                "A. pulverulentum",
-                "A. sempervirens",
-                "A. subbaeticum",
-                "A. valentinum",
-                "A. braun-blanquetii",
-                "A. grosii",
-                "A. meonanthum",
-            ]
-        }
-    },
-    "required": ["project", "nucl_acid", "pooled", "species"]
-}
 
 
 def set_combobox_default_selection(combobox, choices, selected):
@@ -172,6 +133,39 @@ class DataSetFrame(tk.Frame):
         btn.grid(row=row, column=2)
 
 
+    def setup_metadata_schema_selection(self, row):
+        lbl = tk.Label(self.label_frame, text="Select metadata schema")
+
+        # Get the schema names and make sure that there is a schema named "basic".
+        schema_selection = self.master.metadata_schema_list_model.metadata_model_names  # NOQA
+        assert "basic" in schema_selection
+
+        combobox = ttk.Combobox(
+            self.label_frame,
+            state="readonly",
+            values=schema_selection
+        )
+        combobox.bind("<<ComboboxSelected>>", self.select_metadata_schema)
+
+        # Set the default.
+        index = schema_selection.index("basic")
+        combobox.current(index)
+
+
+        lbl.grid(row=row, column=0)
+        combobox.grid(row=row, column=1)
+
+    def select_metadata_schema(self, event):
+        widget = event.widget
+        value = widget.get()
+        self.update_metadata_schema(value)
+
+    def update_metadata_schema(self, schema_name):
+        metadata_model = self.master.metadata_schema_list_model.get_metadata_model(schema_name)  # NOQA
+        self.master.metadata_model = metadata_model
+        self.master.proto_dataset_model.set_metadata_model(metadata_model)
+        self.master.update()
+
     def update(self):
 
         for widget in self.label_frame.winfo_children():
@@ -180,6 +174,7 @@ class DataSetFrame(tk.Frame):
         self.setup_name_input_field(0)
         self.setup_input_directory_field(1)
         self.setup_local_base_uri_directory(2)
+        self.setup_metadata_schema_selection(3)
 
 
 class OptionalMetadataFrame(tk.Frame):
@@ -198,7 +193,7 @@ class OptionalMetadataFrame(tk.Frame):
             "<<ListboxSelect>>",
             self.master.select_optional_metadata
         )
-        rowspan = len(self.master.metadata_model.item_names)
+        rowspan = len(self.master.proto_dataset_model.metadata_model.item_names)
         self.optional_metadata_listbox.grid(
             row=row,
             column=column,
@@ -208,7 +203,7 @@ class OptionalMetadataFrame(tk.Frame):
 
     def update(self):
         self.optional_metadata_listbox.delete(0, tk.END)
-        for name in self.master.metadata_model.deselected_optional_item_names:
+        for name in self.master.proto_dataset_model.metadata_model.deselected_optional_item_names:
             logger.info(f"Adding {name} to optional metadata listbox")
             self.optional_metadata_listbox.insert(tk.END, name)
 
@@ -282,17 +277,17 @@ class MetadataFormFrame(tk.Frame):
         self.entries[name] = e
 
     def setup_input_field(self, row, name):
-        schema = self.master.metadata_model.get_schema(name)
+        schema = self.master.proto_dataset_model.metadata_model.get_schema(name)
 
         # Create the label.
         display_name = name
-        if name in self.master.metadata_model.required_item_names:
+        if name in self.master.proto_dataset_model.metadata_model.required_item_names:
             display_name = name + "*"
 
         lbl = tk.Label(self.label_frame, text=display_name)
         lbl.grid(row=row, column=0, sticky="e")
 
-        value = self.master.metadata_model.get_value(name)
+        value = self.master.proto_dataset_model.metadata_model.get_value(name)
 
         # Create the input field.
         if schema.type == "boolean":
@@ -303,7 +298,7 @@ class MetadataFormFrame(tk.Frame):
             self.setup_enum_input_field(row, name, value)
 
         # Add button to enable the removal of the field if it is optional.
-        if name in self.master.metadata_model.optional_item_names:
+        if name in self.master.proto_dataset_model.metadata_model.optional_item_names:
             btn = tk.Button(self.label_frame, text="Remove")
             btn._name_to_clear = name
             btn.bind("<Button-1>", self.master.deselect_optional_metadata)
@@ -311,7 +306,7 @@ class MetadataFormFrame(tk.Frame):
 
         # Highlight input field if the value is invalid.
         background = "white"
-        if value is not None and not self.master.metadata_model.is_okay(name):
+        if value is not None and not self.master.proto_dataset_model.metadata_model.is_okay(name):
             background = "pink"
         self.entries[name].config({"background": background})
 
@@ -324,8 +319,8 @@ class MetadataFormFrame(tk.Frame):
         self.entries = {}
 
         for i, name in enumerate(
-                self.master.metadata_model.required_item_names
-                + self.master.metadata_model.selected_optional_item_names
+                self.master.proto_dataset_model.metadata_model.required_item_names
+                + self.master.proto_dataset_model.metadata_model.selected_optional_item_names
         ):
             self.setup_input_field(i, name)
 
@@ -354,12 +349,13 @@ class App(tk.Tk):
 
         self.base_uri_model = LocalBaseURIModel()
 
-        self.metadata_model = MetadataModel()
-        self.metadata_model.load_master_schema(MASTER_SCHEMA)
+        self.metadata_schema_list_model = MetadataSchemaListModel()
+        assert "basic" in self.metadata_schema_list_model.metadata_model_names
+        default_metadata_model = self.metadata_schema_list_model.get_metadata_model("basic")
 
         self.proto_dataset_model = ProtoDataSetModel()
         self.proto_dataset_model.set_base_uri_model(self.base_uri_model)
-        self.proto_dataset_model.set_metadata_model(self.metadata_model)
+        self.proto_dataset_model.set_metadata_model(default_metadata_model)
 
         self.optional_metadata_frame = OptionalMetadataFrame(self)
         self.metadata_form_frame = MetadataFormFrame(self)
