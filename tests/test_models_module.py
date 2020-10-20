@@ -425,6 +425,25 @@ def test_DataSetModel_basic(tmp_dir_fixture):  # NOQA
     for key in annotations.keys():
         assert dataset_model.metadata_model.get_value(key) == annotations[key]
 
+    # Check that one can update the properties on the actual dataset.
+    from dtoolcore import DataSet
+    dataset_model.update_name("new-name")
+    assert dataset_model.name == "new-name"
+
+    dataset = DataSet.from_uri(uri)
+    assert dataset.name == "new-name"
+
+    dataset_model.metadata_model.set_value("project", "new-project")
+    assert dataset_model.metadata_model.get_value("project") == "new-project"
+
+    # Updating the metadata in the metadata model requires a call to
+    # DataSetModel.update_metadata()
+    assert dataset.get_annotation("project") == "my-project"
+    dataset_model.update_metadata()
+    assert dataset.get_annotation("project") == "new-project"
+
+
+
 
 def test_json_schema_from_dataset(tmp_dir_fixture):  # NOQA
     from dtoolcore import DataSet, DataSetCreator

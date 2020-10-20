@@ -347,6 +347,16 @@ class DataSetModel(object):
         self._dataset = dtoolcore.DataSet.from_uri(uri)
         self._metadata_model = metadata_model_from_dataset(self._dataset)
 
+    def update_name(self, name):
+        """Update the name of the dataset."""
+        self._dataset.update_name(name)
+
+    def update_metadata(self):
+        """Update dataset with any changes made to the DataSetModel.MetadataModel."""
+
+        for key in self.metadata_model.in_scope_item_names:
+            value = self.metadata_model.get_value(key)
+            self._dataset.put_annotation(key, value)
 
 class ProtoDataSetModel(object):
     "Model for creating building up and creating a dataset."
