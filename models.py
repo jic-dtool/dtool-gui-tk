@@ -43,6 +43,7 @@ def metadata_model_from_dataset(dataset):
         for key in readme_dict.keys():
             schema = {"type": "string"}
             metadata_model.add_metadata_property(key, schema, True)
+            metadata_model.set_value(key, readme_dict[key])
 
     for key in dataset.list_annotation_names():
         value = dataset.get_annotation(key)

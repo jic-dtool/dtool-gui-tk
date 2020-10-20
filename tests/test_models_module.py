@@ -498,6 +498,7 @@ def test_json_schema_from_dataset(tmp_dir_fixture):  # NOQA
     }
     expected_metadata_model = MetadataModel()
     expected_metadata_model.load_master_schema(expected_schema)
+    expected_metadata_model.set_value("project", "test")
     assert metadata_model_from_dataset(dataset) == expected_metadata_model
 
     # Only annotations.
