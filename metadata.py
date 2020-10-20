@@ -42,6 +42,12 @@ class MetadataSchemaItem(object):
     def __eq__(self, other):
         return self._schema == other._schema
 
+    def __repr__(self):
+        return "<{}({}) at {}>".format(
+            self.__class__.__name__,
+            self._schema,
+            hex(id(self)))
+
     @property
     def type(self):
         return self._schema["type"]
