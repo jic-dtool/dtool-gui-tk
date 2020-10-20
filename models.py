@@ -335,13 +335,6 @@ class DataSetModel(object):
         return self._dataset.name
 
     @property
-    def readme(self):
-        """Return the readme of the loaded dataset."""
-        if self._dataset is None:
-            return None
-        return self._dataset.get_readme_content()
-
-    @property
     def metadata_model(self):
         """Return the metadata model."""
         return self._metadata_model

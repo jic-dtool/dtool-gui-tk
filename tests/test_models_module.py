@@ -390,7 +390,6 @@ def test_DataSetModel_basic(tmp_dir_fixture):  # NOQA
     from models import DataSetModel
     dataset_model = DataSetModel()
     assert dataset_model.name is None
-    assert dataset_model.readme is None
     assert dataset_model.metadata_model is None
 
     # Create a dataset.
@@ -412,9 +411,8 @@ def test_DataSetModel_basic(tmp_dir_fixture):  # NOQA
 
     dataset_model.load_dataset(uri)
 
+    # Check that it has the right properties.
     assert dataset_model.name == dataset_name
-    assert dataset_model.readme == readme
-
     expected_schema = {
         "type": "object",
         "properties": {
@@ -423,9 +421,7 @@ def test_DataSetModel_basic(tmp_dir_fixture):  # NOQA
         },
         "required": ["description", "project"]
     }
-
     assert dataset_model.metadata_model.get_master_schema() == expected_schema
-
     for key in annotations.keys():
         assert dataset_model.metadata_model.get_value(key) == annotations[key]
 
