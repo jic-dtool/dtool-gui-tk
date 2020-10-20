@@ -442,7 +442,37 @@ def test_DataSetModel_basic(tmp_dir_fixture):  # NOQA
     dataset_model.update_metadata()
     assert dataset.get_annotation("project") == "new-project"
 
+    # DataSetModel.update_metadata() should raise MissingRequiredMetadataError
+    # and MetadataValidationError if appropriate.
+    from models import MissingRequiredMetadataError, MetadataValidationError
 
+    # Add new required metadata property,
+    # but don't set it so that it is missing.
+    dataset_model.metadata_model.add_metadata_property(
+        name="age",
+        schema={"type": "integer", "exclusiveMinimum": 0},
+        required=True
+    )
+    with pytest.raises(MissingRequiredMetadataError):
+        dataset_model.update_metadata()
+
+    # Set the age metadata to an invalid value.
+    dataset_model.metadata_model.set_value("age", -1)
+    with pytest.raises(MetadataValidationError):
+        dataset_model.update_metadata()
+
+    # Test with valid value.
+    # Set the age metadata to an invalid value.
+    dataset_model.metadata_model.set_value("age", 1)
+    dataset_model.update_metadata()
+    assert dataset.get_annotation("age") == 1
+
+    # If the metadata model is missing DataSetModel.update_metadata
+    # should raise MissingMetadataModelError.
+    from models import MissingMetadataModelError
+    dataset_model._metadata_model = None
+    with pytest.raises(MissingMetadataModelError):
+        dataset_model.update_metadata()
 
 
 def test_json_schema_from_dataset(tmp_dir_fixture):  # NOQA

@@ -352,11 +352,29 @@ class DataSetModel(object):
         self._dataset.update_name(name)
 
     def update_metadata(self):
-        """Update dataset with any changes made to the DataSetModel.MetadataModel."""
+        """Update dataset with any changes made to the metadata model."""
+
+        if self._metadata_model is None:
+            raise(MissingMetadataModelError("Metadata model has not been set"))
+
+        for name in self.metadata_model.required_item_names:
+            metadata = self.metadata_model.get_value(name)
+            if metadata is None:
+                raise(MissingRequiredMetadataError(
+                    "Missing required metadata: {}".format(name)
+                ))
+
+        for name in self.metadata_model.in_scope_item_names:
+            if not self.metadata_model.is_okay(name):
+                value = self.metadata_model.get_value(name)
+                raise(MetadataValidationError(
+                    "Metadata {} value not valid: {}".format(name, value)
+                ))
 
         for key in self.metadata_model.in_scope_item_names:
             value = self.metadata_model.get_value(key)
             self._dataset.put_annotation(key, value)
+
 
 class ProtoDataSetModel(object):
     "Model for creating building up and creating a dataset."
