@@ -5,11 +5,53 @@ import json
 import dtoolcore
 import dtoolcore.utils
 
+from ruamel.yaml import YAML
+
 from metadata import MetadataSchemaItem
 
 logger = logging.getLogger(__name__)
 
 LOCAL_BASE_URI_KEY = "DTOOL_LOCAL_BASE_URI"
+
+
+def _get_json_schema_type(obj):
+    """Return JSON schema type representation of object."""
+    if isinstance(obj, str):
+        return "string"
+    # This check needs to be before int because bool is subclass of int.
+    elif isinstance(obj, bool):
+        return "boolean"
+    elif isinstance(obj, int):
+        return "integer"
+    elif isinstance(obj, float):
+        return "number"
+    else:
+        raise(UnsupportedTypeError("{} not supported yet".format(type(obj))))
+
+
+def metadata_model_from_dataset(dataset):
+    """Return basic MetadataModel from a dataset.
+
+    Schema extracted from the readme and annotations.
+    """
+    metadata_model = MetadataModel()
+
+    yaml = YAML()
+    readme_dict = yaml.load(dataset.get_readme_content())
+
+    if isinstance(readme_dict, dict):
+        for key in readme_dict.keys():
+            schema = {"type": "string"}
+            metadata_model.add_metadata_property(key, schema, True)
+
+    for key in dataset.list_annotation_names():
+        value = dataset.get_annotation(key)
+        _type = _get_json_schema_type(value)
+        schema = {"type": _type}
+        metadata_model.add_metadata_property(key, schema, True)
+        metadata_model.set_value(key, dataset.get_annotation(key))
+
+    return metadata_model
 
 
 class DirectoryDoesNotExistError(IOError):
@@ -276,6 +318,41 @@ class MetadataModel(object):
         "Mark an optinal metadata item as not selected."
         if name in self.selected_optional_item_names:
             self._selected_optional_item_names.remove(name)
+
+
+class DataSetModel(object):
+    "Model for working with a frozen dataset."
+
+    def __init__(self):
+        self._dataset = None
+        self._metadata_model = None
+
+    @property
+    def name(self):
+        """Return the name of the loaded dataset."""
+        if self._dataset is None:
+            return None
+        return self._dataset.name
+
+    @property
+    def readme(self):
+        """Return the readme of the loaded dataset."""
+        if self._dataset is None:
+            return None
+        return self._dataset.get_readme_content()
+
+    @property
+    def metadata_model(self):
+        """Return the metadata model."""
+        return self._metadata_model
+
+    def load_dataset(self, uri):
+        """Load the dataset from a URI.
+
+        :param uri: URI to a dtoolcore.DataSet
+        """
+        self._dataset = dtoolcore.DataSet.from_uri(uri)
+        self._metadata_model = metadata_model_from_dataset(self._dataset)
 
 
 class ProtoDataSetModel(object):

@@ -382,3 +382,123 @@ def test_MetadataSchemaListModel(tmp_dir_fixture):  # NOQA
 
     accessed_model = metadata_schema_list_model.get_metadata_model("advanced")  # NOQA
     assert advanced_model == accessed_model
+
+
+def test_DataSetModel_basic(tmp_dir_fixture):  # NOQA
+
+    # Create an empty dataset model.
+    from models import DataSetModel
+    dataset_model = DataSetModel()
+    assert dataset_model.name is None
+    assert dataset_model.readme is None
+    assert dataset_model.metadata_model is None
+
+    # Create a dataset.
+    from dtoolcore import DataSetCreator
+    dataset_name = "my-dataset"
+    annotations = {"project": "my-project", "description": "my-description"}
+    readme_lines = ["---"]
+    with DataSetCreator(
+        name=dataset_name,
+        base_uri=tmp_dir_fixture
+    ) as ds_creator:
+        for key in sorted(annotations.keys()):
+            value = annotations[key]
+            ds_creator.put_annotation(key, value)
+            readme_lines.append("{}: {}".format(key, value))
+        readme = "\n".join(readme_lines)
+        ds_creator.put_readme(readme)
+        uri = ds_creator.uri
+
+    dataset_model.load_dataset(uri)
+
+    assert dataset_model.name == dataset_name
+    assert dataset_model.readme == readme
+
+    expected_schema = {
+        "type": "object",
+        "properties": {
+            "project": {"type": "string"},
+            "description": {"type": "string"}
+        },
+        "required": ["description", "project"]
+    }
+
+    assert dataset_model.metadata_model.get_master_schema() == expected_schema
+
+    for key in annotations.keys():
+        assert dataset_model.metadata_model.get_value(key) == annotations[key]
+
+
+def test_json_schema_from_dataset(tmp_dir_fixture):  # NOQA
+    from dtoolcore import DataSet, DataSetCreator
+    from models import (
+        metadata_model_from_dataset,
+        MetadataModel,
+        UnsupportedTypeError,
+    )
+
+    # Only readme.
+    readme = "---\nproject: test"
+    with DataSetCreator("only-readme", tmp_dir_fixture, readme) as ds_creator:
+        uri = ds_creator.uri
+    dataset = DataSet.from_uri(uri)
+
+    expected_schema = {
+        "type": "object",
+        "properties": {
+            "project": {"type": "string"}
+        },
+        "required": ["project"]
+    }
+    expected_metadata_model = MetadataModel()
+    expected_metadata_model.load_master_schema(expected_schema)
+    assert metadata_model_from_dataset(dataset) == expected_metadata_model
+
+    # Only annotations.
+    with DataSetCreator("only-annotations", tmp_dir_fixture) as ds_creator:
+        ds_creator.put_annotation("an-int", 3)
+        ds_creator.put_annotation("a-float", 3.5)
+        ds_creator.put_annotation("a-string", "hello")
+        ds_creator.put_annotation("a-bool", True)
+        uri = ds_creator.uri
+    dataset = DataSet.from_uri(uri)
+
+    expected_schema = {
+        "type": "object",
+        "properties": {
+            "an-int": {"type": "integer"},
+            "a-float": {"type": "number"},
+            "a-string": {"type": "string"},
+            "a-bool": {"type": "boolean"}
+        },
+        "required": ["an-int", "a-float", "a-string", "a-bool"]
+    }
+    expected_metadata_model = MetadataModel()
+    expected_metadata_model.load_master_schema(expected_schema)
+    expected_metadata_model.set_value("an-int", 3)
+    expected_metadata_model.set_value("a-float", 3.5)
+    expected_metadata_model.set_value("a-string", "hello")
+    expected_metadata_model.set_value("a-bool", True)
+
+    actual_metadata_model = metadata_model_from_dataset(dataset)
+    assert actual_metadata_model.item_names == expected_metadata_model.item_names  # NOQA
+    assert actual_metadata_model.required_item_names == expected_metadata_model.required_item_names  # NOQA
+    for name in expected_metadata_model.item_names:
+        expected_schema = expected_metadata_model.get_schema(name)
+        actual_schema = actual_metadata_model.get_schema(name)
+        assert expected_schema == actual_schema
+        expected_value = expected_metadata_model.get_value(name)
+        actual_value = actual_metadata_model.get_value(name)
+        assert expected_value == actual_value
+
+    assert metadata_model_from_dataset(dataset) == expected_metadata_model
+
+    # Unsupported type.
+    with DataSetCreator("unsupported-type", tmp_dir_fixture) as ds_creator:
+        ds_creator.put_annotation("complex-object", {"x": 1, "y": 2})
+        ds_creator.put_annotation("an-int", 3)
+        uri = ds_creator.uri
+    dataset = DataSet.from_uri(uri)
+    with pytest.raises(UnsupportedTypeError):
+        metadata_model_from_dataset(dataset)
