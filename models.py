@@ -12,6 +12,7 @@ from metadata import MetadataSchemaItem
 logger = logging.getLogger(__name__)
 
 LOCAL_BASE_URI_KEY = "DTOOL_LOCAL_BASE_URI"
+METADATA_SCHEMA_ANNOTATION_NAME = "_metadata_schema"
 
 
 def _get_json_schema_type(obj):
@@ -37,8 +38,8 @@ def metadata_model_from_dataset(dataset):
     metadata_model = MetadataModel()
 
     ignore_metadata_schemas = set()
-    if "_metadata_schema" in dataset.list_annotation_names():
-        schema = dataset.get_annotation("_metadata_schema")
+    if METADATA_SCHEMA_ANNOTATION_NAME in dataset.list_annotation_names():
+        schema = dataset.get_annotation(METADATA_SCHEMA_ANNOTATION_NAME)
         metadata_model.load_master_schema(schema)
         for name in metadata_model.item_names:
             ignore_metadata_schemas.add(name)
@@ -64,7 +65,7 @@ def metadata_model_from_dataset(dataset):
     for key in dataset.list_annotation_names():
 
         # Ignore the special key that stores a schema.
-        if key == "_metadata_schema":
+        if key == METADATA_SCHEMA_ANNOTATION_NAME:
             continue
 
         value = dataset.get_annotation(key)
@@ -419,6 +420,13 @@ class DataSetModel(object):
         readme_content = "\n".join(readme_lines)
         self._dataset.put_readme(readme_content)
 
+        # Update _metadata_schema annotation.
+        metadata_schema = self.metadata_model.get_master_schema()
+        self._dataset.put_annotation(
+            METADATA_SCHEMA_ANNOTATION_NAME,
+            metadata_schema
+        )
+
 
 class ProtoDataSetModel(object):
     "Model for creating building up and creating a dataset."
@@ -544,6 +552,13 @@ class ProtoDataSetModel(object):
                 ds_creator.put_annotation(key, value)
                 readme_lines.append("{}: {}".format(key, value))
             ds_creator.put_readme("\n".join(readme_lines))
+
+            # Add the metadata schema.
+            metdata_schema = self.metadata_model.get_master_schema()
+            ds_creator.put_annotation(
+                METADATA_SCHEMA_ANNOTATION_NAME,
+                metdata_schema
+            )
 
             # Add data items.
             for fpath, handle in self._yield_path_handle_tuples():

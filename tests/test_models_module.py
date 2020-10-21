@@ -467,6 +467,11 @@ def test_DataSetModel_basic(tmp_dir_fixture):  # NOQA
     dataset_model.update_metadata()
     assert dataset.get_annotation("age") == 1
 
+    # When the dataset is updated the special _metadata_schema annotation is
+    # also updated.
+    expected_schema = dataset_model.metadata_model.get_master_schema()
+    assert dataset.get_annotation("_metadata_schema") == expected_schema
+
     # If the metadata model is missing DataSetModel.update_metadata
     # should raise MissingMetadataModelError.
     from models import MissingMetadataModelError
@@ -507,7 +512,7 @@ def test_DataSetModel_update_metadata_works_on_annotations_and_readme(tmp_dir_fi
     # Dataset after metadata update.
     expected_readme = "---\nproject: test\nage: 3"
     assert dataset.get_readme_content() == expected_readme
-    expected_annotation_keys = ["age", "project"]
+    expected_annotation_keys = ["_metadata_schema", "age", "project"]
     assert dataset.list_annotation_names() == expected_annotation_keys  # NOQA
 
 def test_json_schema_from_dataset_only_readme(tmp_dir_fixture):  # NOQA

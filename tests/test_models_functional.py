@@ -86,9 +86,14 @@ def test_create_dataset(tmp_dir_fixture):  # NOQA
     )
     assert proto_dataset_model.uri == expected_uri
 
+    # Check that the dataset has the expected annotations.
     ds = dtoolcore.DataSet.from_uri(expected_uri)
     assert ds.get_annotation("project") == "dtool-gui"
     assert ds.get_annotation("age") == 5
+
+    # Check that the dataset has "special" annotation for the metadata schema.
+    expected_schema = proto_dataset_model.metadata_model.get_master_schema()
+    assert ds.get_annotation("_metadata_schema") == expected_schema
 
     expected_readme = """---
 project: dtool-gui
