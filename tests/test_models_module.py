@@ -636,3 +636,63 @@ def test_json_schema_from_dataset_readme_and_annotations_conflicting(tmp_dir_fix
     from models import MetadataConflictError
     with pytest.raises(MetadataConflictError):
         metadata_model_from_dataset(dataset)
+
+
+def test_json_schema_from_dataset_schema_annotation(tmp_dir_fixture):  # NOQA
+    # Create a master metadata schema.
+    metadata_schema = {
+        "type": "object",
+        "properties": {
+            "project": {"type": "string"},
+            "age": {"type": "integer"}
+        },
+        "required": ["project"]
+    }
+
+    # Create a dataset.
+    from dtoolcore import DataSet, DataSetCreator
+    with DataSetCreator("annotation-schema", tmp_dir_fixture) as ds_creator: # NOQA
+        ds_creator.put_annotation("_metadata_schema", metadata_schema)
+    dataset = DataSet.from_uri(ds_creator.uri)
+
+    # Create the expected model from the schema.
+    from models import MetadataModel
+    expected_metadata_model = MetadataModel()
+    expected_metadata_model.load_master_schema(metadata_schema)
+
+    # Test that the function returns the correct model.
+    from models import metadata_model_from_dataset
+    actual_metadata_model = metadata_model_from_dataset(dataset)
+    assert actual_metadata_model == expected_metadata_model
+
+
+def test_json_schema_from_dataset_schema_annotation_with_conflicting_type_in_readme_and_annotations(tmp_dir_fixture):  # NOQA
+    # Create a master metadata schema.
+    metadata_schema = {
+        "type": "object",
+        "properties": {
+            "project": {"type": "string"},
+            "age": {"type": "integer"}
+        },
+        "required": ["project"]
+    }
+
+    # Create a dataset.
+    from dtoolcore import DataSet, DataSetCreator
+    readme = "---\nproject: 1"  # Type is integer instead of string.
+    with DataSetCreator("annotation-schema", tmp_dir_fixture, readme) as ds_creator: # NOQA
+        ds_creator.put_annotation("_metadata_schema", metadata_schema)
+        ds_creator.put_annotation("age", "old")  # Type is string instead of integer  # NOQA
+    dataset = DataSet.from_uri(ds_creator.uri)
+
+    # Create the expected model from the schema.
+    from models import MetadataModel
+    expected_metadata_model = MetadataModel()
+    expected_metadata_model.load_master_schema(metadata_schema)
+    expected_metadata_model.set_value("project", 1)  # Expecting incorrect type.  # NOQA
+    expected_metadata_model.set_value("age", "old")  # Expecting incorrect type.  # NOQA
+
+    # Test that the function returns the correct model.
+    from models import metadata_model_from_dataset
+    actual_metadata_model = metadata_model_from_dataset(dataset)
+    assert actual_metadata_model == expected_metadata_model

@@ -36,6 +36,13 @@ def metadata_model_from_dataset(dataset):
     """
     metadata_model = MetadataModel()
 
+    ignore_metadata_schemas = set()
+    if "_metadata_schema" in dataset.list_annotation_names():
+        schema = dataset.get_annotation("_metadata_schema")
+        metadata_model.load_master_schema(schema)
+        for name in metadata_model.item_names:
+            ignore_metadata_schemas.add(name)
+
     yaml = YAML()
     readme_dict = yaml.load(dataset.get_readme_content())
     if readme_dict is None:
@@ -46,10 +53,20 @@ def metadata_model_from_dataset(dataset):
             value = readme_dict[key]
             _type = _get_json_schema_type(value)
             schema = {"type": _type}
-            metadata_model.add_metadata_property(key, schema, True)
+
+            # Only add schema items not added from "_metadata_schema".
+            if key not in ignore_metadata_schemas:
+                metadata_model.add_metadata_property(key, schema, True)
+
+            # Update the value regardless.
             metadata_model.set_value(key, value)
 
     for key in dataset.list_annotation_names():
+
+        # Ignore the special key that stores a schema.
+        if key == "_metadata_schema":
+            continue
+
         value = dataset.get_annotation(key)
         _type = _get_json_schema_type(value)
         schema = {"type": _type}
@@ -63,7 +80,11 @@ def metadata_model_from_dataset(dataset):
                     )
                 )
 
-        metadata_model.add_metadata_property(key, schema, True)
+        # Only add schema items not added from "_metadata_schema".
+        if key not in ignore_metadata_schemas:
+            metadata_model.add_metadata_property(key, schema, True)
+
+        # Update the value regardless.
         metadata_model.set_value(key, dataset.get_annotation(key))
 
     return metadata_model
