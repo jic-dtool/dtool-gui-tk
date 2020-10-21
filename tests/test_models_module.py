@@ -475,33 +475,39 @@ def test_DataSetModel_basic(tmp_dir_fixture):  # NOQA
         dataset_model.update_metadata()
 
 
-def test_json_schema_from_dataset(tmp_dir_fixture):  # NOQA
+def test_json_schema_from_dataset_only_readme(tmp_dir_fixture):  # NOQA
     from dtoolcore import DataSet, DataSetCreator
-    from models import (
-        metadata_model_from_dataset,
-        MetadataModel,
-        UnsupportedTypeError,
-    )
+    from models import metadata_model_from_dataset, MetadataModel
 
     # Only readme.
-    readme = "---\nproject: test"
+    readme = "---\nproject: test\nage: 3\ntemperature: 25.5"
     with DataSetCreator("only-readme", tmp_dir_fixture, readme) as ds_creator:
         uri = ds_creator.uri
     dataset = DataSet.from_uri(uri)
 
+    # Create expected metadata model.
     expected_schema = {
         "type": "object",
         "properties": {
-            "project": {"type": "string"}
+            "project": {"type": "string"},
+            "age": {"type": "integer"},
+            "temperature": {"type": "number"}
         },
-        "required": ["project"]
+        "required": ["age", "project", "temperature"]
     }
     expected_metadata_model = MetadataModel()
     expected_metadata_model.load_master_schema(expected_schema)
     expected_metadata_model.set_value("project", "test")
+    expected_metadata_model.set_value("age", 3)
+    expected_metadata_model.set_value("temperature", 25.5)
+
     assert metadata_model_from_dataset(dataset) == expected_metadata_model
 
-    # Only annotations.
+
+def test_json_schema_from_dataset_only_annotations(tmp_dir_fixture):  # NOQA
+    from dtoolcore import DataSet, DataSetCreator
+    from models import metadata_model_from_dataset, MetadataModel
+
     with DataSetCreator("only-annotations", tmp_dir_fixture) as ds_creator:
         ds_creator.put_annotation("an-int", 3)
         ds_creator.put_annotation("a-float", 3.5)
@@ -510,6 +516,7 @@ def test_json_schema_from_dataset(tmp_dir_fixture):  # NOQA
         uri = ds_creator.uri
     dataset = DataSet.from_uri(uri)
 
+    # Create expected metadata model.
     expected_schema = {
         "type": "object",
         "properties": {
@@ -541,10 +548,56 @@ def test_json_schema_from_dataset(tmp_dir_fixture):  # NOQA
     assert metadata_model_from_dataset(dataset) == expected_metadata_model
 
     # Unsupported type.
+    from models import UnsupportedTypeError
     with DataSetCreator("unsupported-type", tmp_dir_fixture) as ds_creator:
         ds_creator.put_annotation("complex-object", {"x": 1, "y": 2})
         ds_creator.put_annotation("an-int", 3)
         uri = ds_creator.uri
     dataset = DataSet.from_uri(uri)
     with pytest.raises(UnsupportedTypeError):
+        metadata_model_from_dataset(dataset)
+
+
+def test_json_schema_from_dataset_readme_and_annotations_diverse_not_conflicting(tmp_dir_fixture):  # NOQA
+    from dtoolcore import DataSet, DataSetCreator
+    from models import metadata_model_from_dataset, MetadataModel
+
+    # Diverse but not conflicting.
+    readme = "---\nproject: test"
+    with DataSetCreator("readme-and-annotations", tmp_dir_fixture, readme) as ds_creator:  # NOQA
+        ds_creator.put_annotation("age", 3)
+        uri = ds_creator.uri
+    dataset = DataSet.from_uri(uri)
+
+    # Create expected metadata model.
+    expected_schema = {
+        "type": "object",
+        "properties": {
+            "project": {"type": "string"},
+            "age": {"type": "integer"}
+        },
+        "required": ["age", "project"]
+    }
+    expected_metadata_model = MetadataModel()
+    expected_metadata_model.load_master_schema(expected_schema)
+    expected_metadata_model.set_value("project", "test")
+    expected_metadata_model.set_value("age", 3)
+
+    actual_metadata_model = metadata_model_from_dataset(dataset)
+    assert actual_metadata_model == expected_metadata_model
+
+
+def test_json_schema_from_dataset_readme_and_annotations_conflicting(tmp_dir_fixture):  # NOQA
+
+    from dtoolcore import DataSet, DataSetCreator
+    from models import metadata_model_from_dataset
+    # Identical but missing type.
+    readme = "---\nproject: test\nage: 4"
+    with DataSetCreator("readme-and-annotations", tmp_dir_fixture, readme) as ds_creator:  # NOQA
+        ds_creator.put_annotation("age", 3)
+        uri = ds_creator.uri
+    dataset = DataSet.from_uri(uri)
+
+    from models import MetadataConflictError
+    with pytest.raises(MetadataConflictError):
         metadata_model_from_dataset(dataset)

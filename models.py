@@ -38,17 +38,31 @@ def metadata_model_from_dataset(dataset):
 
     yaml = YAML()
     readme_dict = yaml.load(dataset.get_readme_content())
+    if readme_dict is None:
+        readme_dict = {}
 
     if isinstance(readme_dict, dict):
         for key in readme_dict.keys():
-            schema = {"type": "string"}
+            value = readme_dict[key]
+            _type = _get_json_schema_type(value)
+            schema = {"type": _type}
             metadata_model.add_metadata_property(key, schema, True)
-            metadata_model.set_value(key, readme_dict[key])
+            metadata_model.set_value(key, value)
 
     for key in dataset.list_annotation_names():
         value = dataset.get_annotation(key)
         _type = _get_json_schema_type(value)
         schema = {"type": _type}
+
+        if key in readme_dict:
+            readme_value = readme_dict[key]
+            if readme_value != value:
+                err_msg = "Annotation ({}) and readme ({}) values do not match for key {}"  # NOQA
+                raise(MetadataConflictError(
+                    err_msg.format(readme_value, value, key)
+                    )
+                )
+
         metadata_model.add_metadata_property(key, schema, True)
         metadata_model.set_value(key, dataset.get_annotation(key))
 
@@ -60,6 +74,10 @@ class DirectoryDoesNotExistError(IOError):
 
 
 class MetadataValidationError(ValueError):
+    pass
+
+
+class MetadataConflictError(ValueError):
     pass
 
 
