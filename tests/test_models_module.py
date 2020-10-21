@@ -475,6 +475,41 @@ def test_DataSetModel_basic(tmp_dir_fixture):  # NOQA
         dataset_model.update_metadata()
 
 
+def test_DataSetModel_update_metadata_works_on_annotations_and_readme(tmp_dir_fixture):  # NOQA
+
+    # Create a basic dataset.
+    from dtoolcore import DataSetCreator, DataSet
+    with DataSetCreator("my-dataset", tmp_dir_fixture) as ds_creator:
+        ds_creator.put_annotation("project", "test")
+
+    # Create a dataset model from the dataset
+    from models import DataSetModel
+    dataset_model = DataSetModel()
+    dataset_model.load_dataset(ds_creator.uri)
+
+    # Add an optional metadata and set it.
+    dataset_model.metadata_model.add_metadata_property("age", {"type": "integer"})  # NOQA
+    dataset_model.metadata_model.set_value("age", 3)
+    dataset_model.metadata_model.select_optional_item("age")
+
+    # Load the dataset.
+    dataset = DataSet.from_uri(ds_creator.uri)
+
+    # Dataset before metadata update.
+    expected_readme = ""
+    assert dataset.get_readme_content() == expected_readme
+    expected_annotation_keys = ["project"]
+    assert dataset.list_annotation_names() == expected_annotation_keys  # NOQA
+
+    # Update the metadata.
+    dataset_model.update_metadata()
+
+    # Dataset after metadata update.
+    expected_readme = "---\nproject: test\nage: 3"
+    assert dataset.get_readme_content() == expected_readme
+    expected_annotation_keys = ["age", "project"]
+    assert dataset.list_annotation_names() == expected_annotation_keys  # NOQA
+
 def test_json_schema_from_dataset_only_readme(tmp_dir_fixture):  # NOQA
     from dtoolcore import DataSet, DataSetCreator
     from models import metadata_model_from_dataset, MetadataModel

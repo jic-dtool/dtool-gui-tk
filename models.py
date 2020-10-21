@@ -390,9 +390,13 @@ class DataSetModel(object):
                     "Metadata {} value not valid: {}".format(name, value)
                 ))
 
+        readme_lines = ["---"]
         for key in self.metadata_model.in_scope_item_names:
             value = self.metadata_model.get_value(key)
             self._dataset.put_annotation(key, value)
+            readme_lines.append("{}: {}".format(key, value))
+        readme_content = "\n".join(readme_lines)
+        self._dataset.put_readme(readme_content)
 
 
 class ProtoDataSetModel(object):
