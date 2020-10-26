@@ -633,9 +633,9 @@ class ProtoDataSetModel(object):
         for dirpath, dirnames, filenames in os.walk(self.input_directory):
             for fn in filenames:
                 path = os.path.join(dirpath, fn)
-                relative_path = path[path_length:]
+                handle = path[path_length:]
                 if dtoolcore.utils.IS_WINDOWS:
-                    handle = dtoolcore.utils.windows_to_unix_path(relative_path)  # NOQA
+                    handle = dtoolcore.utils.windows_to_unix_path(handle)  # NOQA
                 yield (path, handle)
 
     def set_name(self, name):
