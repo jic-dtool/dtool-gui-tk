@@ -15,8 +15,15 @@ LOCAL_BASE_URI_KEY = "DTOOL_LOCAL_BASE_URI"
 METADATA_SCHEMA_ANNOTATION_NAME = "_metadata_schema"
 
 
-def _get_json_schema_type(obj):
-    """Return JSON schema type representation of object."""
+def get_json_schema_type(obj):
+    """Return JSON schema type representation of object.
+
+    :param obj: object to return the JSON schema type for
+    :returns: JSON schema type as a string
+    :raises: :class:`dtool_gui.models.UnsupportedTypeError` if the value is a
+             complex data structure. Currently supported data types are
+             ``str``, ``int``, ``float``, and ``bool``.
+    """
     if isinstance(obj, str):
         return "string"
     # This check needs to be before int because bool is subclass of int.
@@ -31,9 +38,23 @@ def _get_json_schema_type(obj):
 
 
 def metadata_model_from_dataset(dataset):
-    """Return basic MetadataModel from a dataset.
+    """Return MetadataModel from a dataset.
 
-    Schema extracted from the readme and annotations.
+    Schema extracted from the readme and annotations. Specifically,
+    if an annotation named "_metadata_schema" it is loaded. Key value pairs
+    from the readme are then added. Key value pairs are then extracted from
+    the dataset annotations (the "_metdata_schema" key is ignored).
+
+    The precedent for determining the type for a schema item is to use the
+    type defined in the "_metadata_schema" if present, if not the type of
+    the value extracted from the dataset is used.
+
+    :param dataset: :class:`dtoolcore.DataSet`
+    :returns: :class:`dtool_gui.models.MetadataModel` instance
+    :raises dtool_gui.models.MetadataConflictError: if the values extracted
+        from the readme and annotations do not match for a particular key
+    :raises dtool_gui.models.UnsupportedTypeError: if the value is not
+        supported, see :func:`dtool_gui.models.get_json_schema_type`.
     """
     metadata_model = MetadataModel()
 
@@ -52,7 +73,7 @@ def metadata_model_from_dataset(dataset):
     if isinstance(readme_dict, dict):
         for key in readme_dict.keys():
             value = readme_dict[key]
-            _type = _get_json_schema_type(value)
+            _type = get_json_schema_type(value)
             schema = {"type": _type}
 
             # Only add schema items not added from "_metadata_schema".
@@ -69,7 +90,7 @@ def metadata_model_from_dataset(dataset):
             continue
 
         value = dataset.get_annotation(key)
-        _type = _get_json_schema_type(value)
+        _type = get_json_schema_type(value)
         schema = {"type": _type}
 
         if key in readme_dict:
@@ -133,14 +154,12 @@ class _ConfigFileVariableBaseModel(object):
         self._config_path = config_path
 
     def _get(self):
-        """Return the base URI."""
         return dtoolcore.utils.get_config_value_from_file(
             self.KEY,
             self._config_path
         )
 
     def _put(self, value):
-        """Put/update the base URI in the config file."""
         dtoolcore.utils.write_config_value_to_file(
             self.KEY,
             value,
@@ -154,11 +173,19 @@ class LocalBaseURIModel(_ConfigFileVariableBaseModel):
     KEY = "DTOOL_LOCAL_BASE_URI"
 
     def get_base_uri(self):
-        """Return the base URI."""
+        """Return the base URI.
+
+        :returns: base URI where datasets will be read from and written to
+        """
         return self._get()
 
     def put_base_uri(self, base_uri):
-        """Put/update the base URI in the config file."""
+        """Put/update the base URI.
+
+        The value is updated in the config file.
+
+        :param base_uri: base URI
+        """
         value = dtoolcore.utils.sanitise_uri(base_uri)
         self._put(value)
 
@@ -169,17 +196,29 @@ class MetadataSchemaListModel(_ConfigFileVariableBaseModel):
     KEY = "DTOOL_METADATA_SCHEMA_DIRECTORY"
 
     def get_metadata_schema_directory(self):
-        """Return the metadata schema directory."""
+        """Return the metadata schema directory.
+
+        :returns: absolute path to directory where metadata schemas are stored
+                  as JSON files
+        """
         return self._get()
 
     def put_metadata_schema_directory(self, metadata_schema_directory):
-        """Put/update the base URI in the config file."""
+        """Put/update the path to the metadata schema directory.
+
+        The value is updated in the  config file.
+
+        :param metadata_schema_directory: path to the metadata schema directory
+        """
         value = os.path.abspath(metadata_schema_directory)
         self._put(value)
 
     @property
     def metadata_model_names(self):
-        """Return list of metadata model names."""
+        """Return list of metadata model names.
+
+        :returns: list of metadata model names
+        """
         metadata_schema_directory = self.get_metadata_schema_directory()
         if metadata_schema_directory is None:
             return []
@@ -187,7 +226,11 @@ class MetadataSchemaListModel(_ConfigFileVariableBaseModel):
         return sorted([os.path.splitext(f)[0] for f in filenames])
 
     def get_metadata_model(self, name):
-        """Returns class:`dtool_gui.models.MetadataModel` instance."""
+        """Returns class:`dtool_gui.models.MetadataModel` instance.
+
+        :param name: metadata model name
+        :returns: `dtool_gui.models.MetadataModel instance
+        """
         metadata_schema_directory = self.get_metadata_schema_directory()
         schema_fpath = os.path.join(metadata_schema_directory, name + ".json")
         metadata_model = MetadataModel()
@@ -219,43 +262,75 @@ class MetadataModel(object):
 
     @property
     def item_names(self):
-        "Return metadata names (keys)."
+        """Return metadata names (keys).
+
+        :returns: names of items in the metadata schema
+        """
         return sorted(self._metadata_schema_items.keys())
 
     @property
     def required_item_names(self):
-        "Return list of names of required metadata items."
+        """Return list of names of required metadata items.
+
+        :returns: names of required items in the metadata schema
+        """
         return sorted(list(self._required_item_names))
 
     @property
     def optional_item_names(self):
-        "Return list of names of optional metadata items."
+        """Return list of names of optional metadata items.
+
+        :returns: names of optional items in the metadata schema
+        """
         all_set = set(self.item_names)
         required_set = set(self.required_item_names)
         return sorted(list(all_set - required_set))
 
     @property
     def selected_optional_item_names(self):
-        "Return list of names of selected optional metadata items."
+        """Return list of names of selected optional metadata items.
+
+        A :class:`dtool_gui.models.MetadataModel` instance can have optional
+        :class:`metadata.MetadataSchemaItem` instances. However for these to be
+        included when the dataset metadata is set/updated they need to be
+        selected. This property lists the names of the selected optional
+        metadata schema items.
+
+        :returns: names of selected optional items in the metadata schema
+        """
         return sorted(list(self._selected_optional_item_names))
 
     @property
     def deselected_optional_item_names(self):
-        "Return list of names of deselected optional metadata items."
+        """Return list of names of deselected optional metadata items.
+
+        Inverse of
+        :func:`dtool_gui.models.MetadataModel.selected_optional_item_names`
+
+        :returns: names of deselected optional items in the metadata schema
+        """
         optional_set = set(self.optional_item_names)
         selected_set = set(self.selected_optional_item_names)
         return sorted(list(optional_set - selected_set))
 
     @property
     def in_scope_item_names(self):
-        "Return required and selected optional item names."
+        """Return required and selected optional item names.
+
+        :returns: names of required and selected optional items in the metadata
+                  schema
+        """
         return self.required_item_names + self.selected_optional_item_names
 
     @property
     def issues(self):
         """Return list of issues with metadata.
+
         Only reports on issues that are required and optional metadata that has
-        been selected.
+        been selected. Each value that has been set is evaluated against its
+        schema.
+
+        :returns: list of issues
         """
         _issues = []
         for item_name in self.in_scope_item_names:
@@ -267,7 +342,26 @@ class MetadataModel(object):
         return _issues
 
     def load_master_schema(self, master_schema):
-        "Load JSON schema of an object describing the metadata model."
+        """Load JSON schema of an object describing the metadata model.
+
+        Example of a mater schema::
+
+          {
+            "type": "object,
+            "properties": {
+                "description": {"type:" "string"},
+                "project": {"type": "string"}
+            }
+            "required": ["description"]
+        }
+
+        The "type" of the master schema should be "object". The "properties" in
+        the master schema are converted to :class:`metadata.MetadataSchemaItem`
+        instances. The "required" property is used to classify metadata items
+        as required/optional.
+
+        :param master_schema: dictionary containing a JSON schema
+        """
         for name, schema in master_schema["properties"].items():
             self._metadata_schema_items[name] = MetadataSchemaItem(schema)
 
@@ -276,13 +370,27 @@ class MetadataModel(object):
                 self._required_item_names.add(r)
 
     def add_metadata_property(self, name, schema={}, required=False):
-        "Add a metadata property to the master schema."
+        """Add a metadata property to the master schema.
+
+        Method to build a build up or extend the master schema.
+
+        :param name: name of the metadata item, the key used in the property
+                     dictionary of the master schema
+        :param schema: the JSON schema to use to create a
+                       :class:`metadata.MetadataSchemaItem`
+        :param required: boolean value stating whether the property is required
+                         or optional
+        """
         self._metadata_schema_items[name] = MetadataSchemaItem(schema)
         if required:
             self._required_item_names.add(name)
 
     def get_master_schema(self):
-        "Return JSON schema of object describing the metadata model."
+        """Return JSON schema of object describing the metadata model.
+
+        :returns: JSON schema representing the current state of the
+                  :class:`dtool_gui.models.MetadataModel` as a dictionary
+        """
         master_schema = {
             "type": "object",
             "properties": {},
@@ -297,21 +405,37 @@ class MetadataModel(object):
         return master_schema
 
     def get_schema(self, name):
-        "Return metadata schema."
+        """Return metadata schema.
+
+        :param name: name of the metadata
+        :returns: :class:`metadata.MetadataSchemaItem`
+        """
         return self._metadata_schema_items[name]
 
     def get_value(self, name):
-        "Return metadata value."
+        """Return metadata value.
+
+        :param name: name of the metadata
+        :returns: the value of the metadata
+        """
         if name not in self._metadata_values:
             return None
         return self._metadata_values[name]
 
     def set_value(self, name, value):
-        "Set the metadata value."
+        """Set the metadata value.
+
+        :param name: name of the metadata
+        :param value: value to set the metadata to
+        """
         self._metadata_values[name] = value
 
     def set_value_from_str(self, name, value_as_str):
-        "Set the metadata value from a string forcing the type."
+        """Set the metadata value from a string forcing the type.
+
+        :param name: name of the metadata
+        :param value_as_str: string representing the value of the metadata
+        """
         type_ = self.get_schema(name).type
         if type_ == "string":
             if value_as_str == "":
@@ -345,7 +469,11 @@ class MetadataModel(object):
             raise(UnsupportedTypeError("{} not supported yet".format(type_)))
 
     def is_okay(self, name):
-        "Validate the metadata value against its schema."
+        """Validate the metadata value against its schema.
+
+        :param name: name of the metadata
+        :returns: True if the value is valid
+        """
         schema = self.get_schema(name)
         value = self.get_value(name)
         return schema.is_okay(value)
@@ -370,14 +498,20 @@ class DataSetModel(object):
 
     @property
     def name(self):
-        """Return the name of the loaded dataset."""
+        """Return the name of the loaded dataset.
+
+        :returns: name of the dataset or None of the dataset has not been set
+        """
         if self._dataset is None:
             return None
         return self._dataset.name
 
     @property
     def metadata_model(self):
-        """Return the metadata model."""
+        """Return the metadata model.
+
+        :returns: :class:`dtool_gui.models.MetadataModel` instance
+        """
         return self._metadata_model
 
     def load_dataset(self, uri):
@@ -389,11 +523,25 @@ class DataSetModel(object):
         self._metadata_model = metadata_model_from_dataset(self._dataset)
 
     def update_name(self, name):
-        """Update the name of the dataset."""
+        """Update the name of the dataset.
+
+        :param name: new dataset name
+        """
         self._dataset.update_name(name)
 
     def update_metadata(self):
-        """Update dataset with any changes made to the metadata model."""
+        """Update dataset with any changes made to the metadata model.
+
+        Sets all the metadata for all
+        :attr:`dtool_gui.models.MetadataModel.in_scope_item_names`
+
+        Both the dataset readme and annotations are updated.
+
+        :raises dtool_gui.models.MetadataValidationError: if the metadata value
+            is not valid according to its schema
+        :raises dtool_gui.models.MissingRequiredMetadataError: if a required
+            metadata value has not been set
+        """
 
         if self._metadata_model is None:
             raise(MissingMetadataModelError("Metadata model has not been set"))
@@ -440,27 +588,43 @@ class ProtoDataSetModel(object):
 
     @property
     def name(self):
-        "Return the name to use for the dataset."
+        """Return the name to use for the dataset.
+
+        :returns: name of the dataset or None if it has not been set
+        """
         return self._name
 
     @property
     def base_uri(self):
-        "Return the base URI for the dataset."
+        """Return the base URI for the dataset.
+
+        :returns: base URI or None if it has not been set
+        """
         return self._base_uri_model.get_base_uri()
 
     @property
     def input_directory(self):
-        "Return the path to the input directory."
+        """Return the path to the input directory.
+
+        :returns: input data directory path or None if it has not been set
+        """
         return self._input_directory
 
     @property
     def metadata_model(self):
-        "Return the metadata model."
+        """Return the metadata model.
+
+        :returns: :class:`dtool_gui.models.MetadataModel` instance or None if
+                  it has not been set
+        """
         return self._metadata_model
 
     @property
     def uri(self):
-        "Return the URI of the created dataset."
+        """Return the URI of the created dataset.
+
+        :returns: dataset URI or None if it has not been set
+        """
         return self._uri
 
     def _yield_path_handle_tuples(self):
@@ -475,12 +639,16 @@ class ProtoDataSetModel(object):
                 yield (path, handle)
 
     def set_name(self, name):
-        "Set the name to use for the dataset."
+        """Set the name to use for the dataset.
+
+        :param name: dataset name
+        """
         self._name = name
 
     def set_input_directory(self, input_directory):
         """Set the input directory for the dataset creation process.
 
+        :param input_directory: path to the input directory
         :raises: dtool_gui.models.DirectoryDoesNotExistError if the input
                  directory does not exist
         """
@@ -493,28 +661,28 @@ class ProtoDataSetModel(object):
     def set_base_uri_model(self, base_uri_model):
         """Set the base URI model.
 
-        :params base_uri_model: dtool_gui.models.LocalBaseURIModel
+        :param base_uri_model: :class:`dtool_gui.models.LocalBaseURIModel`
         """
         self._base_uri_model = base_uri_model
 
     def set_metadata_model(self, metadata_model):
         """Set the metadata model.
 
-        :params metadata_model: dtool_gui.models.MetadataModel
+        :param metadata_model: :class:`dtool_gui.models.MetadataModel`
         """
         self._metadata_model = metadata_model
 
     def create(self):
         """Create the dataset in the base URI.
 
-        :raises: dtool_gui.models.MissingInputDirectoryError if the input
-                 directory has not been set>
-                 dtool_gui.models.MissingDataSetNameError if the dataset
-                 name has not been set.
-                 dtool_gui.models.MissingBaseURIModelError if the base
-                 URI model has not been set.
-                 dtool_gui.models.MissingMetadataModelError if the metadata
-                 model has not been set.
+        :raises dtool_gui.models.MissingInputDirectoryError: if the input
+            directory has not been set
+        :raises dtool_gui.models.MissingDataSetNameError: if the dataset name
+            has not been set.
+        :raises dtool_gui.models.MissingBaseURIModelError: if the base URI
+            model has not been set.
+        :raises dtool_gui.models.MissingMetadataModelError: if the metadata
+            model has not been set.
         """
 
         if self._name is None:
@@ -576,20 +744,26 @@ class DataSetListModel(object):
 
     @property
     def base_uri(self):
-        "Return base URI."
+        """Return base URI.
+
+        :returns: base UIR
+        """
         if self._base_uri_model is None:
             return None
         return self._base_uri_model.get_base_uri()
 
     @property
     def names(self):
-        "Return list of dataset names."
+        """Return list of dataset names.
+
+        :returns: list of dataset names
+        """
         return [ds.name for ds in self._datasets]
 
     def set_base_uri_model(self, base_uri_model):
         """Set the base URI model.
 
-        :params base_uri_model: dtool_gui.models.LocalBaseURIModel
+        :param base_uri_model: dtool_gui.models.LocalBaseURIModel
         """
         self._base_uri_model = base_uri_model
 
