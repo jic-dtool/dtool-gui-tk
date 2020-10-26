@@ -444,7 +444,10 @@ def test_DataSetModel_basic(tmp_dir_fixture):  # NOQA
 
     # DataSetModel.update_metadata() should raise MissingRequiredMetadataError
     # and MetadataValidationError if appropriate.
-    from dtool_gui.models import MissingRequiredMetadataError, MetadataValidationError
+    from dtool_gui.models import (
+        MissingRequiredMetadataError,
+        MetadataValidationError
+    )
 
     # Add new required metadata property,
     # but don't set it so that it is missing.
