@@ -7,7 +7,7 @@ import tkinter.filedialog as fd
 import dtoolcore
 import dtoolcore.utils
 
-from models import LocalBaseURIModel, DataSetListModel
+from dtool_gui.models import LocalBaseURIModel, DataSetListModel
 
 logger = logging.getLogger(__file__)
 

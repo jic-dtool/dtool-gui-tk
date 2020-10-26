@@ -10,7 +10,7 @@ from dtoolcore.utils import (
     windows_to_unix_path,
 )
 
-from models import LocalBaseURIModel
+from dtool_gui.models import LocalBaseURIModel
 
 logger = logging.getLogger(__name__)
 

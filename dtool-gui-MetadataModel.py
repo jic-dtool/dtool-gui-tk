@@ -8,7 +8,7 @@ import tkinter.ttk as ttk
 
 import dtoolcore.utils
 
-from models import (
+from dtool_gui.models import (
     LocalBaseURIModel,
     MetadataModel,
     ProtoDataSetModel,

@@ -4,7 +4,7 @@ import logging
 import tkinter as tk
 import tkinter.ttk as ttk
 
-from metadata import MetadataSchemaItem
+from dtool_gui.metadata import MetadataSchemaItem
 
 logger = logging.getLogger(__file__)
 
