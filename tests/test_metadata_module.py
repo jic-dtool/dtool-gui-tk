@@ -4,7 +4,7 @@ import pytest
 
 
 def test_basic_string_metadata():
-    from metadata import MetadataSchemaItem
+    from dtool_gui.metadata import MetadataSchemaItem
 
     string_schema = MetadataSchemaItem({"type": "string"})
     assert string_schema.type == "string"
@@ -17,7 +17,7 @@ def test_basic_string_metadata():
 
 def test_enum_integer_metadata():
 
-    from metadata import MetadataSchemaItem
+    from dtool_gui.metadata import MetadataSchemaItem
 
     enum_int_schema = MetadataSchemaItem(
         {"type": "integer", "enum": [1, 2, 3]}
@@ -35,15 +35,15 @@ def test_enum_integer_metadata():
 
 def test_invalid_schema():
 
-    from metadata import MetadataSchemaItem
-    from metadata import SchemaError
+    from dtool_gui.metadata import MetadataSchemaItem
+    from dtool_gui.metadata import SchemaError
 
     with pytest.raises(SchemaError):
         MetadataSchemaItem({"type": "dontexist"})
 
 
 def test_issues_method():
-    from metadata import MetadataSchemaItem
+    from dtool_gui.metadata import MetadataSchemaItem
 
     complex_array_schema = MetadataSchemaItem({
         "type": "array",
@@ -66,7 +66,7 @@ def test_issues_method():
 
 def test_schema_property():
 
-    from metadata import MetadataSchemaItem
+    from dtool_gui.metadata import MetadataSchemaItem
 
     schema = {"type": "integer", "enum": [1, 2, 3]}
     metadata_schema_item = MetadataSchemaItem(schema)

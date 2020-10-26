@@ -7,7 +7,7 @@ import dtoolcore.utils
 
 from ruamel.yaml import YAML
 
-from metadata import MetadataSchemaItem
+from dtool_gui.metadata import MetadataSchemaItem
 
 logger = logging.getLogger(__name__)
 

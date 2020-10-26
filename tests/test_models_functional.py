@@ -11,7 +11,7 @@ import pytest
 
 def test_create_dataset(tmp_dir_fixture):  # NOQA
 
-    import models
+    import dtool_gui.models
 
     input_directory = os.path.join(tmp_dir_fixture, "input_directory")
     os.mkdir(input_directory)
@@ -22,12 +22,12 @@ def test_create_dataset(tmp_dir_fixture):  # NOQA
     base_uri_directory = os.path.join(tmp_dir_fixture, "datasets")
     os.mkdir(base_uri_directory)
     config_path = os.path.join(tmp_dir_fixture, "dtool-gui.json")
-    base_uri_model = models.LocalBaseURIModel(config_path)
+    base_uri_model = dtool_gui.models.LocalBaseURIModel(config_path)
     base_uri_model.put_base_uri(base_uri_directory)
 
-    proto_dataset_model = models.ProtoDataSetModel()
+    proto_dataset_model = dtool_gui.models.ProtoDataSetModel()
 
-    metadata_model = models.MetadataModel()
+    metadata_model = dtool_gui.models.MetadataModel()
     metadata_model.add_metadata_property(
         name="project",
         schema={"type": "string", "maxLength": 10},
@@ -39,27 +39,27 @@ def test_create_dataset(tmp_dir_fixture):  # NOQA
         required=False
     )
 
-    with pytest.raises(models.MissingDataSetNameError):
+    with pytest.raises(dtool_gui.models.MissingDataSetNameError):
         proto_dataset_model.create()
 
     proto_dataset_model.set_name("my-dataset")
 
-    with pytest.raises(models.MissingInputDirectoryError):
+    with pytest.raises(dtool_gui.models.MissingInputDirectoryError):
         proto_dataset_model.create()
 
     proto_dataset_model.set_input_directory(input_directory)
 
-    with pytest.raises(models.MissingBaseURIModelError):
+    with pytest.raises(dtool_gui.models.MissingBaseURIModelError):
         proto_dataset_model.create()
 
     proto_dataset_model.set_base_uri_model(base_uri_model)
 
-    with pytest.raises(models.MissingMetadataModelError):
+    with pytest.raises(dtool_gui.models.MissingMetadataModelError):
         proto_dataset_model.create()
 
     proto_dataset_model.set_metadata_model(metadata_model)
 
-    with pytest.raises(models.MissingRequiredMetadataError):
+    with pytest.raises(dtool_gui.models.MissingRequiredMetadataError):
         proto_dataset_model.create()
 
     proto_dataset_model.metadata_model.set_value("project", "dtool-gui")  # NOQA
@@ -67,14 +67,14 @@ def test_create_dataset(tmp_dir_fixture):  # NOQA
     proto_dataset_model.metadata_model.select_optional_item("age")
 
     # Raises because "age" is not an integer.
-    with pytest.raises(models.MetadataValidationError):
+    with pytest.raises(dtool_gui.models.MetadataValidationError):
         proto_dataset_model.create()
 
     proto_dataset_model.metadata_model.set_value("project", "too-long-project-name")  # NOQA
     proto_dataset_model.metadata_model.set_value("age", 5)  # NOQA
 
     # Raises because "project" name is too long"
-    with pytest.raises(models.MetadataValidationError):
+    with pytest.raises(dtool_gui.models.MetadataValidationError):
         proto_dataset_model.create()
 
     proto_dataset_model.metadata_model.set_value("project", "dtool-gui")
