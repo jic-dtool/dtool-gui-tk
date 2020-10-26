@@ -16,6 +16,7 @@ setup(
     url=url,
     install_requires=[
         "dtoolcore>=3.17.0",
+        "jsonschema",
     ],
     download_url="{}/tarball/{}".format(url, version),
     license="MIT"
