@@ -50,14 +50,17 @@ class App(tk.Tk):
             cmd=self.new_dataset,
             event_cmd=self._new_dataset_event
         )
-        menu_file.add_separator()
-        self._add_menu_command(
-            menu=menu_file,
-            label="Quit",
-            accelerator_key="Q",
-            cmd=self.quit,
-            event_cmd=self._quit_event
-        )
+
+        if self.platform != "aqua":
+            menu_file.add_separator()
+            self._add_menu_command(
+                menu=menu_file,
+                label="Quit",
+                accelerator_key="Q",
+                cmd=self.quit,
+                event_cmd=self._quit_event
+            )
+
         self._add_menu_command(
             menu=menu_edit,
             label="Edit metadata...",
