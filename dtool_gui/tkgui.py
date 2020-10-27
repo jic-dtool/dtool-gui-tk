@@ -6,10 +6,78 @@ import sys
 import logging
 
 import tkinter as tk
+import tkinter.ttk as ttk
+
+from dtool_gui.models import (
+    LocalBaseURIModel,
+    DataSetListModel,
+    DataSetModel,
+)
 
 logger = logging.getLogger(__file__)
 
 HOME_DIR = os.path.expanduser("~")
+
+
+class ListDataSetFrame(ttk.Frame):
+    """List dataset frame."""
+
+    def __init__(self, master, root):
+        super().__init__(master)
+        logger.info("Initialising {}".format(self))
+        self.root = root
+        self.dataset_list_box = tk.Listbox(self)
+        self.dataset_list_box.grid(row=0, column=0, sticky="nswe")
+        self.dataset_list_box.bind(
+            "<<ListboxSelect>>",
+            self.update_selected_dataset
+        )
+        self.refresh()
+
+    def update_selected_dataset(self, event):
+        widget = event.widget
+        try:
+            index = int(widget.curselection()[0])
+        except IndexError:
+            return
+        dataset_uri = self.root.dataset_list_model.get_uri(index)
+        self.root.dataset_model.load_dataset(dataset_uri)
+        self.root.dataset_frame.refresh()
+
+    def refresh(self):
+        logger.info("Refreshing {}".format(self))
+        self.dataset_list_box.delete(0, tk.END)
+        self.root.dataset_list_model.reindex()
+        for name in self.root.dataset_list_model.names:
+            self.dataset_list_box.insert(tk.END, name)
+            logger.info(f"Loaded dataset: {name}")
+
+
+class DataSetFrame(ttk.Frame):
+    """View dataset frame."""
+
+    def __init__(self, master, root):
+        super().__init__(master)
+        logger.info("Initialising {}".format(self))
+        self.root = root
+        self.refresh()
+
+    def refresh(self):
+        for widget in self.winfo_children():
+            widget.destroy()
+
+        ttk.Label(self, text="Name:").grid(row=0, column=0, sticky="e")
+        ttk.Label(
+            self,
+            text=self.root.dataset_model.name
+        ).grid(row=0, column=1, sticky="w")
+
+        for i, name in enumerate(self.root.dataset_model.metadata_model.in_scope_item_names):  # NOQA
+            value = self.root.dataset_model.metadata_model.get_value(name)
+            value_as_str = str(value)
+            row = i + 1
+            ttk.Label(self, text=name + ":" ).grid(row=row, column=0, sticky="e")  # NOQA
+            ttk.Label(self, text=value_as_str).grid(row=row, column=1, sticky="w")  # NOQA
 
 
 class App(tk.Tk):
@@ -19,6 +87,18 @@ class App(tk.Tk):
         super().__init__()
         logger.info("Initialising dtool-gui")
 
+        # Initialise the models.
+        self.base_uri_model = LocalBaseURIModel()
+        self.dataset_list_model = DataSetListModel()
+        self.dataset_model = DataSetModel()
+
+        # Configure the models.
+        self.dataset_list_model.set_base_uri_model(self.base_uri_model)
+        if len(self.dataset_list_model.names) > 0:
+            first_uri = self.dataset_list_model.get_uri(0)
+            self.dataset_model.load_dataset(first_uri)
+
+        # Determine the platform.
         self.platform = self.tk.call("tk", "windowingsystem")
         logger.info("Running on platform: {}".format(self.platform))
 
@@ -42,7 +122,7 @@ class App(tk.Tk):
         menu_edit = tk.Menu(menubar)
         menubar.add_cascade(menu=menu_edit, label="Edit")
 
-
+        # Add content to the menus.
         self._add_menu_command(
             menu=menu_file,
             label="New file...",
@@ -71,6 +151,18 @@ class App(tk.Tk):
 
         self.config(menu=menubar)
 
+        # Make sure the content resizes when the size of the window changes.
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+
+        self.mainframe = ttk.Frame(self)
+        self.mainframe.grid(row=0, column=0, sticky="nwes")
+
+        self.dataset_list_frame = ListDataSetFrame(self.mainframe, self)
+        self.dataset_list_frame.grid(row=0, column=0)
+
+        self.dataset_frame = DataSetFrame(self.mainframe, self)
+        self.dataset_frame.grid(row=0, column=1, sticky="n")
 
     def _get_accelerator(self, key):
         key = key.upper()
