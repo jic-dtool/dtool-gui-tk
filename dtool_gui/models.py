@@ -767,7 +767,8 @@ class DataSetListModel(object):
         :param base_uri_model: dtool_gui.models.LocalBaseURIModel
         """
         self._base_uri_model = base_uri_model
-        self.reindex()
+        if self._base_uri_model.get_base_uri() is not None:
+            self.reindex()
 
     def get_uri(self, index):
         """Return the URI of the dataset at a specific index in the list.
@@ -780,5 +781,7 @@ class DataSetListModel(object):
         """Index the base URI."""
         self._datasets = []
         base_uri = self._base_uri_model.get_base_uri()
+        if base_uri is None:
+            return
         for ds in dtoolcore.iter_datasets_in_base_uri(base_uri):
             self._datasets.append(ds)

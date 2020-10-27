@@ -60,7 +60,8 @@ class DataSetFrame(ttk.Frame):
         super().__init__(master)
         logger.info("Initialising {}".format(self))
         self.root = root
-        self.refresh()
+        if self.root.base_uri_model.get_base_uri() is not None:
+            self.refresh()
 
     def refresh(self):
         for widget in self.winfo_children():
