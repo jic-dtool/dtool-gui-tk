@@ -27,6 +27,12 @@ class App(tk.Tk):
         # Create the menubar.
         menubar = tk.Menu(self)
 
+        # Make Mac menubar display name of app instead of python.
+        appmenu = tk.Menu(menubar, name="apple")
+        menubar.add_cascade(menu=appmenu)
+        appmenu.add_command(label="About dtool")
+        appmenu.add_separator()
+
         menu_file = tk.Menu(menubar)
         menubar.add_cascade(menu=menu_file, label="File")
         menu_edit = tk.Menu(menubar)
