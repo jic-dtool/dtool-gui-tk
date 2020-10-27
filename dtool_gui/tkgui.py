@@ -19,6 +19,9 @@ class App(tk.Tk):
         super().__init__()
         logger.info("Initialising dtool-gui")
 
+        self.platform = self.tk.call("tk", "windowingsystem")
+        logger.info("Running on platform: {}".format(self.platform))
+
         self.title("dtool-gui")
 
         # Remove ability to tear off menu on Windows and X11.
@@ -28,10 +31,11 @@ class App(tk.Tk):
         menubar = tk.Menu(self)
 
         # Make Mac menubar display name of app instead of python.
-        appmenu = tk.Menu(menubar, name="apple")
-        menubar.add_cascade(menu=appmenu)
-        appmenu.add_command(label="About dtool")
-        appmenu.add_separator()
+        if self.platform == "aqua":
+            appmenu = tk.Menu(menubar, name="apple")
+            menubar.add_cascade(menu=appmenu)
+            appmenu.add_command(label="About dtool")
+            appmenu.add_separator()
 
         menu_file = tk.Menu(menubar)
         menubar.add_cascade(menu=menu_file, label="File")
