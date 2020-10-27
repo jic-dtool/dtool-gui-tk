@@ -2,6 +2,7 @@
 
 
 import os
+import sys
 import logging
 
 import tkinter as tk
@@ -77,7 +78,24 @@ class App(tk.Tk):
         logger.info(self.quit.__doc__)
 
 
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+def tkgui(debug_level=logging.WARNING):
+    """Start the tkinter app."""
+    logging.basicConfig(level=debug_level)
     app = App()
     app.mainloop()
+
+
+if __name__ == "__main__":
+    num_args = len(sys.argv) - 1
+    if num_args == 0:
+        tkgui()
+    if num_args == 1:
+        debug_level = sys.argv[1].upper()
+        acceptable_debug_levels = ("CRITICAL", "ERROR", "WARNING", "INFO", "DEGUG", "NOTSET")  # NOQA
+        if debug_level not in acceptable_debug_levels:
+            print("Error: {} not in {}".format(debug_level, acceptable_debug_levels))  # NOQA
+            sys.exit(2)
+        tkgui(debug_level)
+    else:
+        print("Error: Too many arguments")
+        sys.exit(2)
