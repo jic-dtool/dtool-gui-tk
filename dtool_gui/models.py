@@ -519,6 +519,7 @@ class DataSetModel(object):
 
         :param uri: URI to a dtoolcore.DataSet
         """
+        logger.info("{} loading dataset from URI: {}".format(self, uri))
         self._dataset = dtoolcore.DataSet.from_uri(uri)
         self._metadata_model = metadata_model_from_dataset(self._dataset)
 
@@ -766,6 +767,7 @@ class DataSetListModel(object):
         :param base_uri_model: dtool_gui.models.LocalBaseURIModel
         """
         self._base_uri_model = base_uri_model
+        self.reindex()
 
     def get_uri(self, index):
         """Return the URI of the dataset at a specific index in the list.
