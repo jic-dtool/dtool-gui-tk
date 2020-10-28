@@ -109,7 +109,7 @@ class PreferencesWindow(tk.Toplevel):
             self.root.base_uri_model.get_base_uri()
         )
         label = ttk.Label(label_frame, textvar=self.local_base_uri_directory)
-        button = tk.Button(
+        button = ttk.Button(
             label_frame,
             text="Select local base URI directory",
             command=self.select_local_base_uri_directory
