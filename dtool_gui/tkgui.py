@@ -7,6 +7,7 @@ import logging
 
 import tkinter as tk
 import tkinter.ttk as ttk
+import tkinter.filedialog as fd
 
 from dtool_gui.models import (
     LocalBaseURIModel,
@@ -45,12 +46,16 @@ class ListDataSetFrame(ttk.Frame):
         self.root.dataset_frame.refresh()
 
     def refresh(self):
+        """Refreshing list dataset frame."""
         logger.info("Refreshing {}".format(self))
         self.dataset_list_box.delete(0, tk.END)
         self.root.dataset_list_model.reindex()
         for name in self.root.dataset_list_model.names:
             self.dataset_list_box.insert(tk.END, name)
             logger.info(f"Loaded dataset: {name}")
+        if len(self.root.dataset_list_model.names) > 0:
+            dataset_uri = self.root.dataset_list_model.get_uri(0)
+            self.root.dataset_model.load_dataset(dataset_uri)
 
 
 class DataSetFrame(ttk.Frame):
@@ -64,8 +69,15 @@ class DataSetFrame(ttk.Frame):
             self.refresh()
 
     def refresh(self):
+        """Refreshing dataset frame."""
+        logger.info("Refreshing {}".format(self))
         for widget in self.winfo_children():
+            logger.info("Destroying widget: {}".format(widget))
             widget.destroy()
+
+        # Skip if a dataset is not loaded.
+        if self.root.dataset_model.name is None:
+            return
 
         ttk.Label(self, text="Name:").grid(row=0, column=0, sticky="e")
         ttk.Label(
@@ -79,6 +91,45 @@ class DataSetFrame(ttk.Frame):
             row = i + 1
             ttk.Label(self, text=name + ":" ).grid(row=row, column=0, sticky="e")  # NOQA
             ttk.Label(self, text=value_as_str).grid(row=row, column=1, sticky="w")  # NOQA
+
+
+class PreferencesWindow(tk.Toplevel):
+    """Preferences window."""
+
+    def __init__(self, master):
+        super().__init__(master)
+        logger.info("Initialising {}".format(self))
+        self.root = master
+        mainframe = ttk.Frame(self)
+        mainframe.grid(row=0, column=0, sticky="nwes")
+        label_frame = ttk.LabelFrame(mainframe, text="Local base URI directory")  # NOQA
+        label_frame.grid(row=0, column=0,)
+        self.local_base_uri_directory = tk.StringVar()
+        self.local_base_uri_directory.set(
+            self.root.base_uri_model.get_base_uri()
+        )
+        label = ttk.Label(label_frame, textvar=self.local_base_uri_directory)
+        button = tk.Button(
+            label_frame,
+            text="Select local base URI directory",
+            command=self.select_local_base_uri_directory
+        )
+        label.grid(row=0, column=0)
+        button.grid(row=1, column=0)
+
+    def select_local_base_uri_directory(self):
+        base_uri_directory = fd.askdirectory(
+            title="Select data directory",
+            initialdir=HOME_DIR
+        )
+        self.root.base_uri_model.put_base_uri(base_uri_directory)
+        self.local_base_uri_directory.set(base_uri_directory)
+        logger.info(
+            "Local base URI directory set to: {}".format(
+                base_uri_directory
+            )
+        )
+        self.root.refresh()
 
 
 class App(tk.Tk):
@@ -150,6 +201,18 @@ class App(tk.Tk):
             event_cmd=self._edit_metadata_event
         )
 
+        if self.platform != "aqua":
+            self._add_menu_command(
+                menu=menu_edit,
+                label="Edit preferences...",
+                accelerator_key="P",
+                cmd=self.show_perferences_window,
+                event_cmd=self._show_perferences_window_event
+            )
+
+        # Deal with preferences menu item on Mac.
+        self.createcommand("tk::mac::ShowPreferences", self.show_perferences_window)  # NOQAQ
+
         self.config(menu=menubar)
 
         # Make sure the content resizes when the size of the window changes.
@@ -208,6 +271,20 @@ class App(tk.Tk):
     def quit(self):
         """Quit the dtool-gui application."""
         logger.info(self.quit.__doc__)
+
+    def _show_perferences_window_event(self, event):
+        self.show_perferences_window()
+
+    def show_perferences_window(self):
+        """Show the preferences window."""
+        logger.info(self.show_perferences_window.__doc__)
+        PreferencesWindow(self)
+
+    def refresh(self):
+        """Refreshing all frames."""
+        logger.info(self.refresh.__doc__)
+        self.dataset_list_frame.refresh()
+        self.dataset_frame.refresh()
 
 
 def tkgui(debug_level=logging.WARNING):
