@@ -28,20 +28,24 @@ class ListDataSetFrame(ttk.Frame):
         super().__init__(master)
         logger.info("Initialising {}".format(self))
         self.root = root
-        self.dataset_list_box = tk.Listbox(self)
-        self.dataset_list_box.grid(row=0, column=0, sticky="nswe")
-        self.dataset_list_box.bind(
-            "<<ListboxSelect>>",
+        columns = ("#1")
+        self.dataset_list = ttk.Treeview(
+            self,
+            show="headings",
+            selectmode="browse",
+            columns=columns
+        )
+        self.dataset_list.heading("#1", text="Dataset name")
+        self.dataset_list.grid(row=0, column=0, sticky="nswe")
+        self.dataset_list.bind(
+            "<<TreeviewSelect>>",
             self.update_selected_dataset
         )
         self.refresh()
 
     def update_selected_dataset(self, event):
-        widget = event.widget
-        try:
-            index = int(widget.curselection()[0])
-        except IndexError:
-            return
+        selected = self.dataset_list.selection()[0]
+        index = self.dataset_list.index(selected)
         dataset_uri = self.root.dataset_list_model.get_uri(index)
         self.root.load_dataset(dataset_uri)
         self.root.dataset_frame.refresh()
@@ -49,10 +53,10 @@ class ListDataSetFrame(ttk.Frame):
     def refresh(self):
         """Refreshing list dataset frame."""
         logger.info("Refreshing {}".format(self))
-        self.dataset_list_box.delete(0, tk.END)
+        self.dataset_list.delete(*self.dataset_list.get_children())
         self.root.dataset_list_model.reindex()
         for name in self.root.dataset_list_model.names:
-            self.dataset_list_box.insert(tk.END, name)
+            self.dataset_list.insert("", "end", values=(name))
             logger.info(f"Loaded dataset: {name}")
         if len(self.root.dataset_list_model.names) > 0:
             dataset_uri = self.root.dataset_list_model.get_uri(0)
