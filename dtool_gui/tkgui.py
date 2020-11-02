@@ -28,7 +28,7 @@ class DataSetListFrame(ttk.Frame):
         super().__init__(master)
         logger.info("Initialising {}".format(self))
         self.root = root
-        columns = ("#1")
+        columns = ("#1", "#2", "#3", "#4", "#5")
         self.dataset_list = ttk.Treeview(
             self,
             show="headings",
@@ -36,6 +36,10 @@ class DataSetListFrame(ttk.Frame):
             columns=columns
         )
         self.dataset_list.heading("#1", text="Dataset name")
+        self.dataset_list.heading("#2", text="Size")
+        self.dataset_list.heading("#3", text="Num items")
+        self.dataset_list.heading("#4", text="Creator")
+        self.dataset_list.heading("#5", text="Date")
         self.dataset_list.grid(row=0, column=0, sticky="nswe")
         self.dataset_list.bind(
             "<<TreeviewSelect>>",
@@ -55,9 +59,16 @@ class DataSetListFrame(ttk.Frame):
         logger.info("Refreshing {}".format(self))
         self.dataset_list.delete(*self.dataset_list.get_children())
         self.root.dataset_list_model.reindex()
-        for name in self.root.dataset_list_model.names:
-            self.dataset_list.insert("", "end", values=(name))
-            logger.info(f"Loaded dataset: {name}")
+        for props in self.root.dataset_list_model.yield_properties():
+            values = (
+                props["name"],
+                props["size_str"],
+                props["num_items"],
+                props["creator"],
+                props["date"]
+            )
+            self.dataset_list.insert("", "end", values=values)
+            logger.info("Loaded dataset: {}".format(props["name"]))
         if len(self.root.dataset_list_model.names) > 0:
             dataset_uri = self.root.dataset_list_model.get_uri(0)
             self.root.load_dataset(dataset_uri)

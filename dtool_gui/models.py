@@ -7,6 +7,9 @@ import dtoolcore.utils
 
 from ruamel.yaml import YAML
 
+# This is a hack.
+from dtool_info.inventory import _dataset_info
+
 from dtool_gui.metadata import MetadataSchemaItem
 
 logger = logging.getLogger(__name__)
@@ -819,3 +822,9 @@ class DataSetListModel(object):
             return
         for ds in dtoolcore.iter_datasets_in_base_uri(base_uri):
             self._datasets.append(ds)
+
+    def yield_properties(self):
+        """Return iterable that yields dictionaries with dataset properties."""
+        for ds in self._datasets:
+            # This is a hack.
+            yield _dataset_info(ds)

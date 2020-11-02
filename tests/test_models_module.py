@@ -332,6 +332,16 @@ def test_DataSetListModel(tmp_dir_fixture):  # NOQA
     for i, name in enumerate(dataset_list_model.names):
         assert dataset_list_model.get_uri(i) == dataset_uris[name]
 
+    # Test yield_properties.
+    props_generator = dataset_list_model.yield_properties()
+    try:
+        from collections.abc import Iterable
+    except ImportError:
+        from collections import Iterable
+    assert isinstance(props_generator, Iterable)
+    first = next(props_generator)
+    assert "name" in first
+
 
 def test_MetadataSchemaListModel(tmp_dir_fixture):  # NOQA
 
