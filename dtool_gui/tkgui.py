@@ -21,7 +21,7 @@ logger = logging.getLogger(__file__)
 HOME_DIR = os.path.expanduser("~")
 
 
-class ListDataSetFrame(ttk.Frame):
+class DataSetListFrame(ttk.Frame):
     """List dataset frame."""
 
     def __init__(self, master, root):
@@ -233,7 +233,7 @@ class App(tk.Tk):
         self.mainframe = ttk.Frame(self)
         self.mainframe.grid(row=0, column=0, sticky="nwes")
 
-        self.dataset_list_frame = ListDataSetFrame(self.mainframe, self)
+        self.dataset_list_frame = DataSetListFrame(self.mainframe, self)
         self.dataset_list_frame.grid(row=0, column=0)
 
         self.dataset_frame = DataSetFrame(self.mainframe, self)
