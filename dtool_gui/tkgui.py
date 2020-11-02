@@ -56,6 +56,8 @@ class ListDataSetFrame(ttk.Frame):
         if len(self.root.dataset_list_model.names) > 0:
             dataset_uri = self.root.dataset_list_model.get_uri(0)
             self.root.dataset_model.load_dataset(dataset_uri)
+        else:
+            self.root.dataset_model.clear()
 
 
 class DataSetFrame(ttk.Frame):
