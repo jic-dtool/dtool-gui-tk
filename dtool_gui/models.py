@@ -514,6 +514,21 @@ class DataSetModel(object):
         """
         return self._metadata_model
 
+    @property
+    def is_empty(self):
+        """Return True if no dataset has been loaded or if the model has been cleared.
+
+        :returns: boolean
+        """
+        if self._dataset is None:
+            return True
+        return False
+
+    def clear(self):
+        """Clear the model of existing data."""
+        self._dataset = None
+        self._metadata_model = None
+
     def load_dataset(self, uri):
         """Load the dataset from a URI.
 

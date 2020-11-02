@@ -392,6 +392,8 @@ def test_DataSetModel_basic(tmp_dir_fixture):  # NOQA
     assert dataset_model.name is None
     assert dataset_model.metadata_model is None
 
+    assert dataset_model.is_empty
+
     # Create a dataset.
     from dtoolcore import DataSetCreator
     dataset_name = "my-dataset"
@@ -410,6 +412,7 @@ def test_DataSetModel_basic(tmp_dir_fixture):  # NOQA
         uri = ds_creator.uri
 
     dataset_model.load_dataset(uri)
+    assert not dataset_model.is_empty
 
     # Check that it has the right properties.
     assert dataset_model.name == dataset_name
@@ -481,6 +484,10 @@ def test_DataSetModel_basic(tmp_dir_fixture):  # NOQA
     dataset_model._metadata_model = None
     with pytest.raises(MissingMetadataModelError):
         dataset_model.update_metadata()
+
+    # Test clearing the DataSetModel.
+    dataset_model.clear()
+    assert dataset_model.is_empty
 
 
 def test_DataSetModel_update_metadata_works_on_annotations_and_readme(tmp_dir_fixture):  # NOQA
