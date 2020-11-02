@@ -36,6 +36,8 @@ def test_MetadataModel():
 
     metadata_model = MetadataModel()
 
+    assert metadata_model.is_empty
+
     master_schema = {
         "type": "object",
         "properties": {
@@ -50,6 +52,8 @@ def test_MetadataModel():
     }
 
     metadata_model.load_master_schema(master_schema)
+
+    assert not metadata_model.is_empty
 
     assert metadata_model.required_item_names == ["project"]
 
@@ -85,6 +89,10 @@ def test_MetadataModel():
 
     # Check that generated master schema matches the input master schema.
     assert metadata_model.get_master_schema() == master_schema
+
+    # Test clearing metadata model.
+    metadata_model.clear()
+    assert metadata_model.is_empty
 
 
 def test_MetadataModelSchemaBuilderAPI():

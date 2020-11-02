@@ -261,6 +261,17 @@ class MetadataModel(object):
         return True
 
     @property
+    def is_empty(self):
+        """Return True if no metadata schema value has been loaded
+        or if the model has been cleared.
+
+        :returns: boolean
+        """
+        if len(self._metadata_schema_items) == 0:
+            return True
+        return False
+
+    @property
     def item_names(self):
         """Return metadata names (keys).
 
@@ -340,6 +351,13 @@ class MetadataModel(object):
                 for i in schema.issues(value):
                     _issues.append((item_name, str(i)))
         return _issues
+
+    def clear(self):
+        """Clear the model of existing data."""
+        self._metadata_schema_items = {}
+        self._metadata_values = {}
+        self._required_item_names = set()
+        self._selected_optional_item_names = set()
 
     def load_master_schema(self, master_schema):
         """Load JSON schema of an object describing the metadata model.
