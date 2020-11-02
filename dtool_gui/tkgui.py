@@ -43,10 +43,7 @@ class ListDataSetFrame(ttk.Frame):
         except IndexError:
             return
         dataset_uri = self.root.dataset_list_model.get_uri(index)
-        try:
-            self.root.dataset_model.load_dataset(dataset_uri)
-        except UnsupportedTypeError:
-            logging.info("Dataset contains unsupported metadata type")
+        self.root.load_dataset(dataset_uri)
         self.root.dataset_frame.refresh()
 
     def refresh(self):
@@ -59,10 +56,7 @@ class ListDataSetFrame(ttk.Frame):
             logger.info(f"Loaded dataset: {name}")
         if len(self.root.dataset_list_model.names) > 0:
             dataset_uri = self.root.dataset_list_model.get_uri(0)
-            try:
-                self.root.dataset_model.load_dataset(dataset_uri)
-            except UnsupportedTypeError:
-                logging.info("Dataset contains unsupported metadata type")
+            self.root.load_dataset(dataset_uri)
         else:
             self.root.dataset_model.clear()
 
@@ -161,10 +155,7 @@ class App(tk.Tk):
         self.dataset_list_model.set_base_uri_model(self.base_uri_model)
         if len(self.dataset_list_model.names) > 0:
             first_uri = self.dataset_list_model.get_uri(0)
-            try:
-                self.dataset_model.load_dataset(first_uri)
-            except UnsupportedTypeError:
-                logging.info("Dataset contains unsupported metadata type")
+            self.load_dataset(first_uri)
 
         # Determine the platform.
         self.platform = self.tk.call("tk", "windowingsystem")
@@ -295,6 +286,13 @@ class App(tk.Tk):
         """Show the preferences window."""
         logger.info(self.show_perferences_window.__doc__)
         PreferencesWindow(self)
+
+    def load_dataset(self, dataset_uri):
+        """Load dataset and deal with UnsupportedTypeError exceptions."""
+        try:
+            self.dataset_model.load_dataset(dataset_uri)
+        except UnsupportedTypeError:
+            logging.warning("Dataset contains unsupported metadata type")
 
     def refresh(self):
         """Refreshing all frames."""
