@@ -13,6 +13,7 @@ from dtool_gui.models import (
     LocalBaseURIModel,
     DataSetListModel,
     DataSetModel,
+    UnsupportedTypeError,
 )
 
 logger = logging.getLogger(__file__)
@@ -42,7 +43,10 @@ class ListDataSetFrame(ttk.Frame):
         except IndexError:
             return
         dataset_uri = self.root.dataset_list_model.get_uri(index)
-        self.root.dataset_model.load_dataset(dataset_uri)
+        try:
+            self.root.dataset_model.load_dataset(dataset_uri)
+        except UnsupportedTypeError:
+            logging.info("Dataset contains unsupported metadata type")
         self.root.dataset_frame.refresh()
 
     def refresh(self):
@@ -55,7 +59,10 @@ class ListDataSetFrame(ttk.Frame):
             logger.info(f"Loaded dataset: {name}")
         if len(self.root.dataset_list_model.names) > 0:
             dataset_uri = self.root.dataset_list_model.get_uri(0)
-            self.root.dataset_model.load_dataset(dataset_uri)
+            try:
+                self.root.dataset_model.load_dataset(dataset_uri)
+            except UnsupportedTypeError:
+                logging.info("Dataset contains unsupported metadata type")
         else:
             self.root.dataset_model.clear()
 
@@ -87,12 +94,16 @@ class DataSetFrame(ttk.Frame):
             text=self.root.dataset_model.name
         ).grid(row=0, column=1, sticky="w")
 
-        for i, name in enumerate(self.root.dataset_model.metadata_model.in_scope_item_names):  # NOQA
-            value = self.root.dataset_model.metadata_model.get_value(name)
-            value_as_str = str(value)
-            row = i + 1
-            ttk.Label(self, text=name + ":" ).grid(row=row, column=0, sticky="e")  # NOQA
-            ttk.Label(self, text=value_as_str).grid(row=row, column=1, sticky="w")  # NOQA
+        if self.root.dataset_model.metadata_model is None:
+            ttk.Label(self, text="Dataset contains unsupported metadata types").grid(row=1, column=0, columnspan=2, sticky="ew")
+
+        else:
+            for i, name in enumerate(self.root.dataset_model.metadata_model.in_scope_item_names):  # NOQA
+                value = self.root.dataset_model.metadata_model.get_value(name)
+                value_as_str = str(value)
+                row = i + 1
+                ttk.Label(self, text=name + ":" ).grid(row=row, column=0, sticky="e")  # NOQA
+                ttk.Label(self, text=value_as_str).grid(row=row, column=1, sticky="w")  # NOQA
 
 
 class PreferencesWindow(tk.Toplevel):
@@ -150,7 +161,10 @@ class App(tk.Tk):
         self.dataset_list_model.set_base_uri_model(self.base_uri_model)
         if len(self.dataset_list_model.names) > 0:
             first_uri = self.dataset_list_model.get_uri(0)
-            self.dataset_model.load_dataset(first_uri)
+            try:
+                self.dataset_model.load_dataset(first_uri)
+            except UnsupportedTypeError:
+                logging.info("Dataset contains unsupported metadata type")
 
         # Determine the platform.
         self.platform = self.tk.call("tk", "windowingsystem")

@@ -553,6 +553,7 @@ class DataSetModel(object):
         :param uri: URI to a dtoolcore.DataSet
         """
         logger.info("{} loading dataset from URI: {}".format(self, uri))
+        self.clear()
         self._dataset = dtoolcore.DataSet.from_uri(uri)
         self._metadata_model = metadata_model_from_dataset(self._dataset)
 
