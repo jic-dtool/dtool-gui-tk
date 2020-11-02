@@ -95,7 +95,7 @@ class DataSetFrame(ttk.Frame):
         ).grid(row=0, column=1, sticky="w")
 
         if self.root.dataset_model.metadata_model is None:
-            ttk.Label(self, text="Dataset contains unsupported metadata types").grid(row=1, column=0, columnspan=2, sticky="ew")
+            ttk.Label(self, text="Dataset contains unsupported metadata types").grid(row=1, column=0, columnspan=2, sticky="ew")  # NOQA
 
         else:
             for i, name in enumerate(self.root.dataset_model.metadata_model.in_scope_item_names):  # NOQA
