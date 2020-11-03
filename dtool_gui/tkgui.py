@@ -122,8 +122,7 @@ class DataSetFrame(ttk.Frame):
             return
 
         # Display the name.
-        heading_font = nametofont("TkHeadingFont")
-        name = ttk.Label(self, text=self.root.dataset_model.name, font=heading_font)  # NOQA
+        name = ttk.Label(self, text=self.root.dataset_model.name)  # NOQA
         name.grid(row=0, column=0, columnspan=2, sticky="nw")
         separator = ttk.Separator(self, orient=tk.HORIZONTAL)
         separator.grid(row=1, column=0, columnspan=2, sticky="ew")
@@ -136,11 +135,11 @@ class DataSetFrame(ttk.Frame):
                 value = self.root.dataset_model.metadata_model.get_value(name)
                 value_as_str = str(value)
                 row = i + 2
-                ttk.Label(self, text=name).grid(row=row, column=0, sticky="ne")  # NOQA
+                ttk.Label(self, text=name).grid(row=row, column=0, sticky="e")  # NOQA
                 entry = ttk.Entry(self, width=50)
                 entry.insert(0, value_as_str)
                 entry.configure(state="readonly")
-                entry.grid(row=row, column=1, sticky="nw")  # NOQA
+                entry.grid(row=row, column=1, sticky="w")  # NOQA
 
 
 class PreferencesWindow(tk.Toplevel):
