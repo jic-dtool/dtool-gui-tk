@@ -8,6 +8,7 @@ import logging
 import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.filedialog as fd
+from tkinter.font import nametofont
 
 from dtool_gui.models import (
     LocalBaseURIModel,
@@ -37,7 +38,7 @@ class DataSetListFrame(ttk.Frame):
         self.dataset_list = ttk.Treeview(
             self,
             show="headings",
-            height=3,
+            height=10,
             selectmode="browse",
             columns=self.columns
         )
@@ -46,10 +47,10 @@ class DataSetListFrame(ttk.Frame):
         self.dataset_list.heading("num_items", text="Num items")
         self.dataset_list.heading("creator", text="Creator")
         self.dataset_list.heading("date", text="Date")
-        self.dataset_list.column("size_str", width=100, anchor="e")
-        self.dataset_list.column("num_items", width=100, anchor="e")
-        self.dataset_list.column("creator", width=100, anchor="w")
-        self.dataset_list.column("date", width=100, anchor="w")
+        self.dataset_list.column("size_str", width=80, anchor="e")
+        self.dataset_list.column("num_items", width=80, anchor="e")
+        self.dataset_list.column("creator", width=80, anchor="w")
+        self.dataset_list.column("date", width=80, anchor="w")
 
         # Add a scrollbar.
         yscrollbar = ttk.Scrollbar(
@@ -120,8 +121,12 @@ class DataSetFrame(ttk.Frame):
         if self.root.dataset_model.name is None:
             return
 
-        ttk.Label(self, text="Name:").grid(row=0, column=0, sticky="ne")
-        ttk.Label(self, text=self.root.dataset_model.name).grid(row=0, column=1, sticky="nw")  # NOQA
+        # Display the name.
+        heading_font = nametofont("TkHeadingFont")
+        name = ttk.Label(self, text=self.root.dataset_model.name, font=heading_font)  # NOQA
+        name.grid(row=0, column=0, columnspan=2, sticky="nw")
+        separator = ttk.Separator(self, orient=tk.HORIZONTAL)
+        separator.grid(row=1, column=0, columnspan=2, sticky="ew")
 
         if self.root.dataset_model.metadata_model is None:
             ttk.Label(self, text="Dataset contains unsupported metadata types").grid(row=1, column=0, columnspan=2, sticky="ew")  # NOQA
@@ -130,9 +135,12 @@ class DataSetFrame(ttk.Frame):
             for i, name in enumerate(self.root.dataset_model.metadata_model.in_scope_item_names):  # NOQA
                 value = self.root.dataset_model.metadata_model.get_value(name)
                 value_as_str = str(value)
-                row = i + 1
-                ttk.Label(self, text=name + ":" ).grid(row=row, column=0, sticky="ne")  # NOQA
-                ttk.Label(self, text=value_as_str).grid(row=row, column=1, sticky="nw")  # NOQA
+                row = i + 2
+                ttk.Label(self, text=name).grid(row=row, column=0, sticky="ne")  # NOQA
+                entry = ttk.Entry(self, width=50)
+                entry.insert(0, value_as_str)
+                entry.configure(state="readonly")
+                entry.grid(row=row, column=1, sticky="nw")  # NOQA
 
 
 class PreferencesWindow(tk.Toplevel):
