@@ -27,24 +27,48 @@ class DataSetListFrame(ttk.Frame):
     def __init__(self, master, root):
         super().__init__(master)
         logger.info("Initialising {}".format(self))
+
+        # Make sure that the GUI expands/shrinks when the window is resized.
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+
         self.root = root
-        columns = ("#1", "#2", "#3", "#4", "#5")
+        self.columns = ("name", "size_str", "num_items", "creator", "date")
         self.dataset_list = ttk.Treeview(
             self,
             show="headings",
+            height=3,
             selectmode="browse",
-            columns=columns
+            columns=self.columns
         )
-        self.dataset_list.heading("#1", text="Dataset name")
-        self.dataset_list.heading("#2", text="Size")
-        self.dataset_list.heading("#3", text="Num items")
-        self.dataset_list.heading("#4", text="Creator")
-        self.dataset_list.heading("#5", text="Date")
-        self.dataset_list.grid(row=0, column=0, sticky="nswe")
+        self.dataset_list.heading("name", text="Dataset name")
+        self.dataset_list.heading("size_str", text="Size")
+        self.dataset_list.heading("num_items", text="Num items")
+        self.dataset_list.heading("creator", text="Creator")
+        self.dataset_list.heading("date", text="Date")
+        self.dataset_list.column("size_str", width=100, anchor="e")
+        self.dataset_list.column("num_items", width=100, anchor="e")
+        self.dataset_list.column("creator", width=100, anchor="w")
+        self.dataset_list.column("date", width=100, anchor="w")
+
+        # Add a scrollbar.
+        yscrollbar = ttk.Scrollbar(
+            self,
+            orient=tk.VERTICAL,
+            command=self.dataset_list.yview
+        )
+        self.dataset_list.configure(yscroll=yscrollbar.set)
+
+        # Bind event when row is selected.
         self.dataset_list.bind(
             "<<TreeviewSelect>>",
             self.update_selected_dataset
         )
+
+        # Layout the fame.
+        self.dataset_list.grid(row=0, column=0, sticky="nswe")
+        yscrollbar.grid(row=0, column=1, sticky="ns")
+
         self.refresh()
 
     def update_selected_dataset(self, event):
@@ -60,13 +84,7 @@ class DataSetListFrame(ttk.Frame):
         self.dataset_list.delete(*self.dataset_list.get_children())
         self.root.dataset_list_model.reindex()
         for props in self.root.dataset_list_model.yield_properties():
-            values = (
-                props["name"],
-                props["size_str"],
-                props["num_items"],
-                props["creator"],
-                props["date"]
-            )
+            values = [props[c] for c in self.columns]
             self.dataset_list.insert("", "end", values=values)
             logger.info("Loaded dataset: {}".format(props["name"]))
         if len(self.root.dataset_list_model.names) > 0:
@@ -82,6 +100,11 @@ class DataSetFrame(ttk.Frame):
     def __init__(self, master, root):
         super().__init__(master)
         logger.info("Initialising {}".format(self))
+
+        # Make sure that the GUI expands/shrinks when the window is resized.
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+
         self.root = root
         if self.root.base_uri_model.get_base_uri() is not None:
             self.refresh()
@@ -97,11 +120,8 @@ class DataSetFrame(ttk.Frame):
         if self.root.dataset_model.name is None:
             return
 
-        ttk.Label(self, text="Name:").grid(row=0, column=0, sticky="e")
-        ttk.Label(
-            self,
-            text=self.root.dataset_model.name
-        ).grid(row=0, column=1, sticky="w")
+        ttk.Label(self, text="Name:").grid(row=0, column=0, sticky="ne")
+        ttk.Label(self, text=self.root.dataset_model.name).grid(row=0, column=1, sticky="nw")
 
         if self.root.dataset_model.metadata_model is None:
             ttk.Label(self, text="Dataset contains unsupported metadata types").grid(row=1, column=0, columnspan=2, sticky="ew")  # NOQA
@@ -111,8 +131,8 @@ class DataSetFrame(ttk.Frame):
                 value = self.root.dataset_model.metadata_model.get_value(name)
                 value_as_str = str(value)
                 row = i + 1
-                ttk.Label(self, text=name + ":" ).grid(row=row, column=0, sticky="e")  # NOQA
-                ttk.Label(self, text=value_as_str).grid(row=row, column=1, sticky="w")  # NOQA
+                ttk.Label(self, text=name + ":" ).grid(row=row, column=0, sticky="ne")  # NOQA
+                ttk.Label(self, text=value_as_str).grid(row=row, column=1, sticky="nw")  # NOQA
 
 
 class PreferencesWindow(tk.Toplevel):
@@ -160,6 +180,10 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         logger.info("Initialising dtool-gui")
+
+        # Make sure that the GUI expands/shrinks when the window is resized.
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
 
         # Initialise the models.
         self.base_uri_model = LocalBaseURIModel()
@@ -237,18 +261,18 @@ class App(tk.Tk):
 
         self.config(menu=menubar)
 
-        # Make sure the content resizes when the size of the window changes.
-        self.columnconfigure(0, weight=1)
-        self.rowconfigure(0, weight=1)
-
         self.mainframe = ttk.Frame(self)
         self.mainframe.grid(row=0, column=0, sticky="nwes")
 
+        # Make sure that the GUI expands/shrinks when the window is resized.
+        self.mainframe.columnconfigure(0, weight=1)
+        self.mainframe.rowconfigure(0, weight=1)
+
         self.dataset_list_frame = DataSetListFrame(self.mainframe, self)
-        self.dataset_list_frame.grid(row=0, column=0)
+        self.dataset_list_frame.grid(row=0, column=0, sticky="nsew")
 
         self.dataset_frame = DataSetFrame(self.mainframe, self)
-        self.dataset_frame.grid(row=0, column=1, sticky="n")
+        self.dataset_frame.grid(row=0, column=1, sticky="new")
 
     def _get_accelerator(self, key):
         key = key.upper()
