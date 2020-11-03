@@ -121,7 +121,7 @@ class DataSetFrame(ttk.Frame):
             return
 
         ttk.Label(self, text="Name:").grid(row=0, column=0, sticky="ne")
-        ttk.Label(self, text=self.root.dataset_model.name).grid(row=0, column=1, sticky="nw")
+        ttk.Label(self, text=self.root.dataset_model.name).grid(row=0, column=1, sticky="nw")  # NOQA
 
         if self.root.dataset_model.metadata_model is None:
             ttk.Label(self, text="Dataset contains unsupported metadata types").grid(row=1, column=0, columnspan=2, sticky="ew")  # NOQA
