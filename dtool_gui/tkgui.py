@@ -3,23 +3,48 @@
 
 import os
 import sys
+import json
 import logging
+
+import dtoolcore.utils
 
 import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.filedialog as fd
-from tkinter.font import nametofont
 
 from dtool_gui.models import (
     LocalBaseURIModel,
     DataSetListModel,
     DataSetModel,
+    ProtoDataSetModel,
+    MetadataSchemaListModel,
     UnsupportedTypeError,
 )
 
 logger = logging.getLogger(__file__)
 
+CONFIG_DIR = os.path.dirname(dtoolcore.utils.DEFAULT_CONFIG_PATH)
+METADATA_SCHEMAS_DIR = os.path.join(CONFIG_DIR, "metadata_schemas")
 HOME_DIR = os.path.expanduser("~")
+
+# Create the metadata schemas directory if it does not exist.
+dtoolcore.utils.mkdir_parents(METADATA_SCHEMAS_DIR)
+
+# Make sure a basic metadata schema is present in the metadata schemas
+# directory.
+_basic_schema = {
+    "type": "object",
+    "properties": {
+        "description": {
+            "type": "string"
+        }
+    },
+    "required": ["description"]
+}
+_basic_schema_fpath = os.path.join(METADATA_SCHEMAS_DIR, "basic.json")
+if not os.path.isfile(_basic_schema_fpath):
+    with open(_basic_schema_fpath, "w") as fh:
+        json.dump(_basic_schema, fh)
 
 
 class DataSetListFrame(ttk.Frame):
@@ -80,7 +105,7 @@ class DataSetListFrame(ttk.Frame):
         self.root.dataset_frame.refresh()
 
     def refresh(self):
-        """Refreshing list dataset frame."""
+        """Refresh list dataset frame."""
         logger.info("Refreshing {}".format(self))
         self.dataset_list.delete(*self.dataset_list.get_children())
         self.root.dataset_list_model.reindex()
@@ -142,11 +167,157 @@ class DataSetFrame(ttk.Frame):
                 entry.grid(row=row, column=1, sticky="w")  # NOQA
 
 
+class NewDataSetConfigFrame(ttk.Frame):
+    """New dataset configuration frame."""
+
+    def __init__(self, master, root):
+        super().__init__(master)
+        logger.info("Initialising {}".format(self))
+        self.master = master
+        self.root = root
+        self.label_frame = ttk.LabelFrame(self, text="New dataset configuration")  # NOQA
+        self.label_frame.grid(row=0, column=0)
+        self.refresh()
+
+    def _validate_name_callback(self, name):
+        if (name is not None) and (len(name) > 0):
+            return dtoolcore.utils.name_is_valid(name)
+        return True
+
+    def _update_name(self, event):
+        widget = event.widget
+        name = widget.get()
+        if (name is not None) and name != "":
+            logger.info("Setting dataset name to: {}".format(name))
+            self.master.proto_dataset_model.set_name(name)
+        self.refresh()
+
+    def _setup_name_input_field(self, row):
+
+        vcmd = (self.master.register(self._validate_name_callback), "%P")
+        lbl = ttk.Label(self.label_frame, text="Dataset Name")
+        entry = ttk.Entry(
+            self.label_frame,
+            validate="key",
+            validatecommand=vcmd,
+        )
+
+        current_name = self.master.proto_dataset_model.name
+        if current_name is not None:
+            entry.insert(0, current_name)
+
+        entry.bind("<FocusOut>", self._update_name)
+        entry.bind("<Return>", self._update_name)
+        entry.bind("<Tab>", self._update_name)
+
+        lbl.grid(row=row, column=0)
+        entry.grid(row=row, column=1)
+
+    def _select_data_directory(self):
+        data_directory = fd.askdirectory(
+            title="Select data directory",
+            initialdir=HOME_DIR
+        )
+        self.master.proto_dataset_model.set_input_directory(data_directory)
+        logger.info("Data directory set to: {}".format(data_directory))
+        self.update()
+
+    def _setup_input_directory_field(self, row):
+        lbl = ttk.Label(self.label_frame, text="Input data directory")
+        logger.info("Current input directory: {}".format(
+            self.master.proto_dataset_model.input_directory
+        ))
+        entry = ttk.Entry(
+            self.label_frame,
+            )
+        current_input_dir = self.master.proto_dataset_model.input_directory
+        if current_input_dir is not None:
+            entry.insert(0, current_input_dir)
+        entry.configure(state="readonly")
+
+        btn = ttk.Button(
+            self.label_frame,
+            text="Select data directory",
+            command=self._select_data_directory
+        )
+        lbl.grid(row=row, column=0)
+        entry.grid(row=row, column=1)
+        btn.grid(row=row, column=2)
+
+    def _setup_metadata_schema_selection(self, row):
+        lbl = ttk.Label(self.label_frame, text="Select metadata schema")
+
+        # Get the schema names and make sure that there is a schema named
+        # "basic".
+        schema_selection = self.master.metadata_schema_list_model.metadata_model_names  # NOQA
+        assert "basic" in schema_selection
+
+        combobox = ttk.Combobox(
+            self.label_frame,
+            state="readonly",
+            values=schema_selection
+        )
+        combobox.bind("<<ComboboxSelected>>", self._select_metadata_schema)
+
+        # Set the default.
+        index = schema_selection.index("basic")
+        combobox.current(index)
+
+        lbl.grid(row=row, column=0)
+        combobox.grid(row=row, column=1)
+
+    def _select_metadata_schema(self, event):
+        widget = event.widget
+        value = widget.get()
+        self._update_metadata_schema(value)
+
+    def _update_metadata_schema(self, schema_name):
+        metadata_model = self.master.metadata_schema_list_model.get_metadata_model(schema_name)  # NOQA
+        self.master.metadata_model = metadata_model
+        self.master.proto_dataset_model.set_metadata_model(metadata_model)
+        self.master.update()
+
+    def refresh(self):
+        """Refresh new dataset config frame."""
+        logger.info("Refreshing {}".format(self))
+        for widget in self.label_frame.winfo_children():
+            widget.destroy()
+
+        self._setup_name_input_field(0)
+        self._setup_input_directory_field(1)
+        self._setup_metadata_schema_selection(3)
+
+
+class NewDataSetWindow(tk.Toplevel):
+    """Preferences window."""
+
+    def __init__(self, master):
+        super().__init__(master)
+        logger.info("Initialising {}".format(self))
+        self.title("New dataset")
+        self.root = master
+
+        self.metadata_schema_list_model = MetadataSchemaListModel()
+        assert "basic" in self.metadata_schema_list_model.metadata_model_names
+        default_metadata_model = self.metadata_schema_list_model.get_metadata_model("basic")  # NOQA
+
+        self.proto_dataset_model = ProtoDataSetModel()
+        self.proto_dataset_model.set_metadata_model(default_metadata_model)
+
+        mainframe = ttk.Frame(self)
+        mainframe.grid(row=0, column=0, sticky="nwes")
+
+        self.new_dataset_config_frame = NewDataSetConfigFrame(self, self.root)
+        self.new_dataset_config_frame.grid(row=0, column=0)
+
+
 class PreferencesWindow(tk.Toplevel):
     """Preferences window."""
 
     def __init__(self, master):
         super().__init__(master)
+        self.title("Preferences")
+
         logger.info("Initialising {}".format(self))
         self.root = master
         mainframe = ttk.Frame(self)
@@ -187,6 +358,7 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         logger.info("Initialising dtool-gui")
+        self.title("dtool")
 
         # Make sure that the GUI expands/shrinks when the window is resized.
         self.columnconfigure(0, weight=1)
@@ -206,8 +378,6 @@ class App(tk.Tk):
         # Determine the platform.
         self.platform = self.tk.call("tk", "windowingsystem")
         logger.info("Running on platform: {}".format(self.platform))
-
-        self.title("dtool-gui")
 
         # Remove ability to tear off menu on Windows and X11.
         self.option_add("*tearOff", False)
@@ -310,6 +480,7 @@ class App(tk.Tk):
     def new_dataset(self):
         """Open window with form to create a new dataset."""
         logger.info(self.new_dataset.__doc__)
+        NewDataSetWindow(self)
 
     def _edit_metadata_event(self, event):
         self.edit_metadata()
