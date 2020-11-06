@@ -229,8 +229,8 @@ class NewDataSetConfigFrame(ttk.Frame):
         )
         self.master.proto_dataset_model.set_input_directory(data_directory)
         logger.info("Data directory set to: {}".format(data_directory))
-        self.refresh()
         self.focus_set()
+        self.refresh()
 
     def _setup_input_directory_field(self, row):
         lbl = ttk.Label(self.label_frame, text="Input data directory")
