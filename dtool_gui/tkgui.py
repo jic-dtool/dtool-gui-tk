@@ -30,6 +30,7 @@ HOME_DIR = os.path.expanduser("~")
 # Create the metadata schemas directory if it does not exist.
 dtoolcore.utils.mkdir_parents(METADATA_SCHEMAS_DIR)
 
+
 # Make sure a basic metadata schema is present in the metadata schemas
 # directory.
 _basic_schema = {
@@ -45,6 +46,14 @@ _basic_schema_fpath = os.path.join(METADATA_SCHEMAS_DIR, "basic.json")
 if not os.path.isfile(_basic_schema_fpath):
     with open(_basic_schema_fpath, "w") as fh:
         json.dump(_basic_schema, fh)
+
+
+def _set_combobox_default_selection(combobox, choices, selected):
+    index = None
+    if selected is not None:
+        index = choices.index(str(selected))
+    if index is not None:
+        combobox.current(index)
 
 
 class DataSetListFrame(ttk.Frame):
@@ -275,7 +284,7 @@ class NewDataSetConfigFrame(ttk.Frame):
         metadata_model = self.master.metadata_schema_list_model.get_metadata_model(schema_name)  # NOQA
         self.master.metadata_model = metadata_model
         self.master.proto_dataset_model.set_metadata_model(metadata_model)
-        self.master.update()
+        self.master.refresh()
 
     def refresh(self):
         """Refresh new dataset config frame."""
@@ -286,6 +295,148 @@ class NewDataSetConfigFrame(ttk.Frame):
         self._setup_name_input_field(0)
         self._setup_input_directory_field(1)
         self._setup_metadata_schema_selection(3)
+
+
+class OptionalMetadataFrame(ttk.Frame):
+    """Optional metadata frame."""
+
+    def __init__(self, master, root):
+        super().__init__(master)
+        logger.info("Initialising {}".format(self))
+        self.master = master
+        self.root = root
+        self.label_frame = ttk.LabelFrame(self, text="Optional metadata")  # NOQA
+        self.label_frame.grid(row=0, column=0)
+
+        self.optional_metadata_listbox = tk.Listbox(self.label_frame)
+        self.optional_metadata_listbox.bind(
+            "<<ListboxSelect>>",
+            self.master.select_optional_metadata
+        )
+        self.optional_metadata_listbox.grid(
+            row=0,
+            column=0,
+        )
+
+        self.refresh()
+
+    @property
+    def metadata_model(self):
+        return self.master.proto_dataset_model.metadata_model
+
+    def refresh(self):
+        """Refresh optional metadata frame."""
+        self.optional_metadata_listbox.delete(0, tk.END)
+        for name in self.metadata_model.deselected_optional_item_names:
+            logger.info("Adding {} to optional metadata listbox".format(name))
+            self.optional_metadata_listbox.insert(tk.END, name)
+
+
+class MetadataFormFrame(ttk.Frame):
+    """Metadata form frame."""
+
+    def __init__(self, master, root):
+        super().__init__(master)
+        logger.info("Initialising {}".format(self))
+        self.master = master
+        self.root = root
+        self.entries = {}
+        self.label_frame = ttk.LabelFrame(self, text="Metadata form")  # NOQA
+        self.label_frame.grid(row=0, column=0)
+        self.refresh()
+
+    @property
+    def metadata_model(self):
+        return self.master.proto_dataset_model.metadata_model
+
+    def _value_update_event(self, event):
+        widget = event.widget
+        name = widget.name
+        value_as_str = widget.get()
+        if (value_as_str is not None) and (value_as_str != ""):
+            logger.info(f"Setting {name} to: {value_as_str}")
+            self.metadata_model.set_value_from_str(name, value_as_str)
+        self.refresh()
+
+    def value_update_event_focus_out(self, event):
+        self._value_update_event(event)
+
+    def value_update_event_focus_next(self, event):
+        widget = event.widget
+        name = widget.name
+        self._value_update_event(event)
+        index = self.metadata_model.in_scope_item_names.index(name)  # NOQA
+        next_index = index + 1
+        if next_index >= len(self.metadata_model.in_scope_item_names):  # NOQA
+            next_index = 0
+        next_name = self.metadata_model.in_scope_item_names[next_index]  # NOQA
+        self.entries[next_name].focus_set()
+
+    def setup_boolean_input_field(self, row, name, value):
+        values = ["True", "False"]
+        e = ttk.Combobox(self.label_frame, state="readonly", values=values)
+        _set_combobox_default_selection(e, values, value)
+        e.name = name
+        e.bind("<<ComboboxSelected>>", self.value_update_event_focus_next)
+        e.bind("<Return>", self.value_update_event_focus_next)
+        e.grid(row=row, column=1, sticky="ew")
+        self.entries[name] = e
+
+    def setup_entry_input_field(self, row, name, value):
+        e = tk.Entry(self.label_frame)
+        if value is not None:
+            e.insert(0, str(value))
+        e.name = name
+        e.bind("<FocusOut>", self.value_update_event_focus_out)
+        e.bind("<Return>", self.value_update_event_focus_next)
+        e.bind("<Tab>", self.value_update_event_focus_next)
+        e.grid(row=row, column=1, sticky="ew")
+        self.entries[name] = e
+
+    def setup_enum_input_field(self, row, name, value):
+        schema = self.master.metadata_model.get_schema(name)
+        values = [str(v) for v in schema.enum]
+        e = ttk.Combobox(self.label_frame, state="readonly", values=values)
+        _set_combobox_default_selection(e, values, value)
+        e.name = name
+        e.bind("<<ComboboxSelected>>", self.value_update_event_focus_next)
+        e.grid(row=row, column=1, sticky="ew")
+        self.entries[name] = e
+
+    def setup_input_field(self, row, name):
+        """Setup metadata form input field."""
+        schema = self.metadata_model.get_schema(name)
+
+        # Create the label.
+        display_name = name
+        if name in self.metadata_model.required_item_names:
+            display_name = name + "*"
+
+        lbl = tk.Label(self.label_frame, text=display_name)
+        lbl.grid(row=row, column=0, sticky="e")
+
+        value = self.metadata_model.get_value(name)
+
+        # Create the input field.
+        if schema.type == "boolean":
+            self.setup_boolean_input_field(row, name, value)
+        elif schema.enum is None:
+            self.setup_entry_input_field(row, name, value)
+        else:
+            self.setup_enum_input_field(row, name, value)
+
+        return row + 1
+
+    def refresh(self):
+        """Refresh metadata form frame."""
+        logger.info("Refreshing {}".format(self))
+        for widget in self.label_frame.winfo_children():
+            widget.destroy()
+
+        row = 0
+        for name in self.metadata_model.in_scope_item_names:  # NOQA
+            logger.info("Adding {} to metadata form frame".format(name))
+            row = self.setup_input_field(row, name)
 
 
 class NewDataSetWindow(tk.Toplevel):
@@ -308,7 +459,29 @@ class NewDataSetWindow(tk.Toplevel):
         mainframe.grid(row=0, column=0, sticky="nwes")
 
         self.new_dataset_config_frame = NewDataSetConfigFrame(self, self.root)
-        self.new_dataset_config_frame.grid(row=0, column=0)
+        self.new_dataset_config_frame.grid(row=0, column=0, columnspan=2)
+
+        self.optional_metadata_frame = OptionalMetadataFrame(self, self.root)
+        self.optional_metadata_frame.grid(row=1, column=0)
+
+        self.metadata_form_frame = MetadataFormFrame(self, self.root)
+        self.metadata_form_frame.grid(row=1, column=1)
+
+    def select_optional_metadata(self, event):
+        widget = event.widget
+        try:
+            index = int(widget.curselection()[0])
+        except IndexError:
+            return
+        name = widget.get(index)
+        logger.info(f"Selected optional metadata: {name}")
+        self.proto_dataset_model.metadata_model.select_optional_item(name)
+        self.refresh()
+        self.metadata_form_frame.entries[name].focus_set()
+
+    def refresh(self):
+        self.optional_metadata_frame.refresh()
+        self.metadata_form_frame.refresh()
 
 
 class PreferencesWindow(tk.Toplevel):
