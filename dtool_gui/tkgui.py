@@ -185,7 +185,7 @@ class NewDataSetConfigFrame(ttk.Frame):
         self.master = master
         self.root = root
         self.label_frame = ttk.LabelFrame(self, text="New dataset configuration")  # NOQA
-        self.label_frame.grid(row=0, column=0)
+        self.label_frame.grid(row=0, column=0, sticky="nsew")
         self.refresh()
 
     def _validate_name_callback(self, name):
@@ -219,8 +219,8 @@ class NewDataSetConfigFrame(ttk.Frame):
         entry.bind("<Return>", self._update_name)
         entry.bind("<Tab>", self._update_name)
 
-        lbl.grid(row=row, column=0)
-        entry.grid(row=row, column=1)
+        lbl.grid(row=row, column=0, sticky="e")
+        entry.grid(row=row, column=1, sticky="ew")
 
     def _select_data_directory(self):
         data_directory = fd.askdirectory(
@@ -250,9 +250,9 @@ class NewDataSetConfigFrame(ttk.Frame):
             text="Select data directory",
             command=self._select_data_directory
         )
-        lbl.grid(row=row, column=0)
-        entry.grid(row=row, column=1)
-        btn.grid(row=row, column=2)
+        lbl.grid(row=row, column=0, sticky="e")
+        entry.grid(row=row, column=1, sticky="ew")
+        btn.grid(row=row, column=2, sticky="w")
 
     def _setup_metadata_schema_selection(self, row):
         lbl = ttk.Label(self.label_frame, text="Select metadata schema")
@@ -317,6 +317,7 @@ class OptionalMetadataFrame(ttk.Frame):
         self.optional_metadata_listbox.grid(
             row=0,
             column=0,
+            sticky="nsew"
         )
 
         self.refresh()
@@ -343,7 +344,7 @@ class MetadataFormFrame(ttk.Frame):
         self.root = root
         self.entries = {}
         self.label_frame = ttk.LabelFrame(self, text="Metadata form")  # NOQA
-        self.label_frame.grid(row=0, column=0)
+        self.label_frame.grid(row=0, column=0, sticky="nsew")
         self.refresh()
 
     @property
@@ -463,10 +464,10 @@ class NewDataSetWindow(tk.Toplevel):
         self.new_dataset_config_frame.grid(row=0, column=0, columnspan=2)
 
         self.optional_metadata_frame = OptionalMetadataFrame(self, self.root)
-        self.optional_metadata_frame.grid(row=1, column=0)
+        self.optional_metadata_frame.grid(row=1, column=0, sticky="nsew")
 
         self.metadata_form_frame = MetadataFormFrame(self, self.root)
-        self.metadata_form_frame.grid(row=1, column=1)
+        self.metadata_form_frame.grid(row=1, column=1, sticky="nsew")
 
     def select_optional_metadata(self, event):
         widget = event.widget
