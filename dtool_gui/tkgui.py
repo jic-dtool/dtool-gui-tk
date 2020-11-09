@@ -475,8 +475,15 @@ class NewDataSetWindow(tk.Toplevel):
         self.proto_dataset_model.set_base_uri_model(self.master.base_uri_model)
         self.proto_dataset_model.set_metadata_model(default_metadata_model)
 
-        mainframe = ttk.Frame(self)
-        mainframe.grid(row=0, column=0, sticky="nwes")
+        # If we use the code below for styling the NewDataSetConfigFrame,
+        # OptionalMetadataFrame, MetadataFormFrame and ttk.Button need to have
+        # mainframe as their first argument. However, some of these currently
+        # call select_optional_metadata, deselect_optional_metadata, create
+        # and refresh. That stops working in that case as they are not on the
+        # mainframe object. The only reason to change to the below is to do
+        # with background styling of the tk.Toplevel window.
+#       mainframe = ttk.Frame(self)
+#       mainframe.grid(row=0, column=0, sticky="nwes")
 
         self.new_dataset_config_frame = NewDataSetConfigFrame(self, self.root)
         self.new_dataset_config_frame.grid(row=0, column=0, columnspan=2)
