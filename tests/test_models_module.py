@@ -221,8 +221,11 @@ def test_MetadataModel_issues_API():
     metadata_model.load_master_schema(master_schema)
 
     metadata_model.set_value("project", "x")
-    assert len(metadata_model.issues) == 1
-    assert metadata_model.issues[0] == ("project", "'x' is too short")
+    assert len(metadata_model.all_issues) == 1
+    assert metadata_model.all_issues[0] == ("project", "'x' is too short")
+
+    assert len(metadata_model.issues("project")) == 1
+    assert metadata_model.issues("project") == ["'x' is too short"]
 
 
 def test_MetadataModel_str_to_typed():

@@ -337,7 +337,7 @@ class MetadataModel(object):
         return self.required_item_names + self.selected_optional_item_names
 
     @property
-    def issues(self):
+    def all_issues(self):
         """Return list of issues with metadata.
 
         Only reports on issues that are required and optional metadata that has
@@ -498,6 +498,19 @@ class MetadataModel(object):
         schema = self.get_schema(name)
         value = self.get_value(name)
         return schema.is_okay(value)
+
+    def issues(self, name):
+        """Return list of issues with specific metadata item.
+
+        :returns: list of issues
+        """
+        _issues = []
+        schema = self.get_schema(name)
+        value = self.get_value(name)
+        if value is not None:
+            for i in schema.issues(value):
+                _issues.append(str(i))
+        return _issues
 
     def select_optional_item(self, name):
         "Mark an optinal metadata item as selected."
