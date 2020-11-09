@@ -427,6 +427,23 @@ class MetadataFormFrame(ttk.Frame):
         else:
             self.setup_enum_input_field(row, name, value)
 
+        # Add button to enable the removal of the field if it is optional.
+        if name in self.metadata_model.optional_item_names:
+            btn = tk.Button(self.label_frame, text="Remove")
+            btn._name_to_clear = name
+            btn.bind("<Button-1>", self.master.deselect_optional_metadata)
+            btn.grid(row=row, column=2)
+
+        # Highlight input field if the value is invalid.
+        background = "white"
+        if value is not None and not self.metadata_model.is_okay(name):
+            background = "pink"
+            for issue in self.metadata_model.issues(name):
+                row = row + 1
+                issue_lbl = ttk.Label(self.label_frame, text=issue)
+                issue_lbl.grid(row=row, column=1, columnspan=2, sticky="w")
+        self.entries[name].config({"background": background})
+
         return row + 1
 
     def refresh(self):
@@ -480,6 +497,13 @@ class NewDataSetWindow(tk.Toplevel):
         self.proto_dataset_model.metadata_model.select_optional_item(name)
         self.refresh()
         self.metadata_form_frame.entries[name].focus_set()
+
+    def deselect_optional_metadata(self, event):
+        widget = event.widget
+        name = widget._name_to_clear
+        logger.info(f"Deselected optional metadata: {name}")
+        self.proto_dataset_model.metadata_model.deselect_optional_item(name)
+        self.refresh()
 
     def refresh(self):
         self.optional_metadata_frame.refresh()
