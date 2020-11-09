@@ -472,6 +472,7 @@ class NewDataSetWindow(tk.Toplevel):
         default_metadata_model = self.metadata_schema_list_model.get_metadata_model("basic")  # NOQA
 
         self.proto_dataset_model = ProtoDataSetModel()
+        self.proto_dataset_model.set_base_uri_model(self.master.base_uri_model)
         self.proto_dataset_model.set_metadata_model(default_metadata_model)
 
         mainframe = ttk.Frame(self)
@@ -485,6 +486,9 @@ class NewDataSetWindow(tk.Toplevel):
 
         self.metadata_form_frame = MetadataFormFrame(self, self.root)
         self.metadata_form_frame.grid(row=1, column=1, sticky="nsew")
+
+        create_btn = ttk.Button(self, text="Create", command=self.create)
+        create_btn.grid(row=2, column=0, columnspan=2, sticky="we")
 
     def select_optional_metadata(self, event):
         widget = event.widget
@@ -504,6 +508,11 @@ class NewDataSetWindow(tk.Toplevel):
         logger.info(f"Deselected optional metadata: {name}")
         self.proto_dataset_model.metadata_model.deselect_optional_item(name)
         self.refresh()
+
+    def create(self):
+        self.proto_dataset_model.create()
+        logger.info(f"Created dataset: {self.proto_dataset_model.uri}")
+        self.master.refresh()
 
     def refresh(self):
         self.optional_metadata_frame.refresh()
