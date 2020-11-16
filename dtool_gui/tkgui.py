@@ -201,6 +201,7 @@ class NewDataSetConfigFrame(ttk.Frame):
             logger.info("Setting dataset name to: {}".format(name))
             self.master.proto_dataset_model.set_name(name)
         self.refresh()
+        self.data_directory_btn.focus_set()
 
     def _setup_name_input_field(self, row):
 
@@ -223,6 +224,9 @@ class NewDataSetConfigFrame(ttk.Frame):
         lbl.grid(row=row, column=0, sticky="e")
         entry.grid(row=row, column=1, sticky="ew")
 
+    def _select_data_directory_event(self, event):
+        self._select_data_directory()
+
     def _select_data_directory(self):
         data_directory = fd.askdirectory(
             title="Select data directory",
@@ -230,8 +234,8 @@ class NewDataSetConfigFrame(ttk.Frame):
         )
         self.master.proto_dataset_model.set_input_directory(data_directory)
         logger.info("Data directory set to: {}".format(data_directory))
-        self.focus_set()
         self.refresh()
+        self.metadata_schema_combobox.focus_set()
 
     def _setup_input_directory_field(self, row):
         lbl = ttk.Label(self.label_frame, text="Input data directory")
@@ -246,14 +250,15 @@ class NewDataSetConfigFrame(ttk.Frame):
             entry.insert(0, current_input_dir)
         entry.configure(state="readonly")
 
-        btn = ttk.Button(
+        self.data_directory_btn = ttk.Button(
             self.label_frame,
             text="Select data directory",
             command=self._select_data_directory
         )
         lbl.grid(row=row, column=0, sticky="e")
         entry.grid(row=row, column=1, sticky="ew")
-        btn.grid(row=row, column=2, sticky="w")
+        self.data_directory_btn.grid(row=row, column=2, sticky="w")
+        self.data_directory_btn.bind("<Return>", self._select_data_directory_event)  # NOQA
 
     def _setup_metadata_schema_selection(self, row):
         lbl = ttk.Label(self.label_frame, text="Select metadata schema")
@@ -263,19 +268,19 @@ class NewDataSetConfigFrame(ttk.Frame):
         schema_selection = self.master.metadata_schema_list_model.metadata_model_names  # NOQA
         assert "basic" in schema_selection
 
-        combobox = ttk.Combobox(
+        self.metadata_schema_combobox = ttk.Combobox(
             self.label_frame,
             state="readonly",
             values=schema_selection
         )
-        combobox.bind("<<ComboboxSelected>>", self._select_metadata_schema)
+        self.metadata_schema_combobox.bind("<<ComboboxSelected>>", self._select_metadata_schema)  # NOQA
 
         # Set the default.
         index = schema_selection.index("basic")
-        combobox.current(index)
+        self.metadata_schema_combobox.current(index)
 
         lbl.grid(row=row, column=0)
-        combobox.grid(row=row, column=1)
+        self.metadata_schema_combobox.grid(row=row, column=1)
 
     def _select_metadata_schema(self, event):
         widget = event.widget
@@ -466,6 +471,7 @@ class NewDataSetWindow(tk.Toplevel):
         super().__init__(master)
         logger.info("Initialising {}".format(self))
         self.title("New dataset")
+        self.focus_set()
         self.root = master
 
         self.metadata_schema_list_model = MetadataSchemaListModel()
