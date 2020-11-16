@@ -5,6 +5,7 @@ import os
 import sys
 import json
 import logging
+import threading
 
 import dtoolcore.utils
 
@@ -494,8 +495,8 @@ class NewDataSetWindow(tk.Toplevel):
         self.metadata_form_frame = MetadataFormFrame(self, self.root)
         self.metadata_form_frame.grid(row=1, column=1, sticky="nsew")
 
-        create_btn = ttk.Button(self, text="Create", command=self.create)
-        create_btn.grid(row=2, column=0, columnspan=2, sticky="we")
+        self.create_btn = ttk.Button(self, text="Create", command=self.create)
+        self.create_btn.grid(row=2, column=0, columnspan=2, sticky="we")
 
     def select_optional_metadata(self, event):
         widget = event.widget
@@ -516,10 +517,27 @@ class NewDataSetWindow(tk.Toplevel):
         self.proto_dataset_model.metadata_model.deselect_optional_item(name)
         self.refresh()
 
+    def _check_create_thread(self, thread):
+        if thread.is_alive():
+            self.after(100, lambda: self._check_create_thread(thread))
+        else:
+            self.create_btn.config(state=tk.NORMAL)
+            self.progressbar.destroy()
+            self.master.refresh()
+
+    def _run_create(self):
+        self.proto_dataset_model.create(progressbar=self.progressbar)
+        logger.info("Finished dataset creation")
+
     def create(self):
-        self.proto_dataset_model.create()
-        logger.info(f"Created dataset: {self.proto_dataset_model.uri}")
-        self.master.refresh()
+        num_items = len(list(self.proto_dataset_model._yield_path_handle_tuples()))  # NOQA
+        self.progressbar = NewDataSetProgressBar(self, maximum=num_items)
+        self.progressbar.grid(row=3, column=0, columnspan=2, sticky="we")
+        self.create_btn.config(state=tk.DISABLED)
+        thread = threading.Thread(target=self._run_create)
+        logger.info("Start creation thread")
+        thread.start()
+        self._check_create_thread(thread)
 
     def refresh(self):
         self.optional_metadata_frame.refresh()
@@ -565,6 +583,23 @@ class PreferencesWindow(tk.Toplevel):
             )
         )
         self.root.refresh()
+
+
+class NewDataSetProgressBar(ttk.Progressbar):
+
+    def __init__(self, master, maximum):
+        super().__init__(master, maximum=maximum)
+        logger.info("Initialising {}".format(self))
+        self.current = 0
+        self._maximum = maximum
+
+    @property
+    def total(self):
+        return self._maximum
+
+    def update(self, steps):
+        self.current = self.current + steps
+        self.config(value=self.current)
 
 
 class App(tk.Tk):
