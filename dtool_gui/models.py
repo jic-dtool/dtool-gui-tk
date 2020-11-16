@@ -723,7 +723,7 @@ class ProtoDataSetModel(object):
         """
         self._metadata_model = metadata_model
 
-    def create(self):
+    def create(self, progressbar=None):
         """Create the dataset in the base URI.
 
         :raises dtool_gui.models.MissingInputDirectoryError: if the input
@@ -782,6 +782,8 @@ class ProtoDataSetModel(object):
             # Add data items.
             for fpath, handle in self._yield_path_handle_tuples():
                 ds_creator.put_item(fpath, handle)
+                if progressbar is not None:
+                    progressbar.update(1)
 
             self._uri = ds_creator.uri
 
