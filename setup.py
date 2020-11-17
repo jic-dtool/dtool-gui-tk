@@ -19,7 +19,7 @@ setup(
         "jsonschema",
     ],
     entry_points={
-        'console_scripts': ['tkdtool=dtool_gui.tkgui:tkgui'],
+        'console_scripts': ['dtool-tk=dtool_gui.tkgui:tkgui'],
     },
     download_url="{}/tarball/{}".format(url, version),
     license="MIT"
