@@ -12,6 +12,7 @@ import dtoolcore.utils
 import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.filedialog as fd
+import tkinter.messagebox as mb
 
 from dtool_gui.models import (
     LocalBaseURIModel,
@@ -532,17 +533,36 @@ class NewDataSetWindow(tk.Toplevel):
             self.master.refresh()
 
     def _run_create(self):
-        self.proto_dataset_model.create(progressbar=self.progressbar)
+        try:
+            self.proto_dataset_model.create(progressbar=self.progressbar)
+        except Exception as e:
+            logger.warning("Dataset creation exception: {}".format(e))
+            mb.showwarning("Failed to create dataset", e)
         logger.info("Finished dataset creation")
 
     def create(self):
+        # Need to check this as _yield_path_handle_tuples will fail if the
+        # input directory has not been set.
+        if self.proto_dataset_model.input_directory is None:
+            mb.showwarning(
+                "Failed to create dataset",
+                "Input directory has not been set"
+        )
+
+        # The number of items is needed for the progress bar.
         num_items = len(list(self.proto_dataset_model._yield_path_handle_tuples()))  # NOQA
         self.progressbar = NewDataSetProgressBar(self, maximum=num_items)
         self.progressbar.grid(row=3, column=0, columnspan=2, sticky="we")
+
+        # Disable the "create" button whilst the creation process is happening.
         self.create_btn.config(state=tk.DISABLED)
+
+        # Create and start the dataset creation in a separate thread.
         thread = threading.Thread(target=self._run_create)
         logger.info("Start creation thread")
         thread.start()
+
+        # Set off function that will continue polling until the thread is finished.
         self._check_create_thread(thread)
 
     def refresh(self):
