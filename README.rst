@@ -81,23 +81,20 @@ of a more complex metadata schema:
    :alt: New dataset window of dtool-tk GUI
 
    The "New dataset" window of dtool-tk, using a more "complex" metadata
-   schema. Note that the optional metadata items "age" and "allowed" have been
-   selected and that feedback is provided if the metadata does not conform to
-   the specification in the schame as in the case of having an "age" less than
+   schema. The optional metadata items "age" and "allowed" have been
+   selected. Feedback is provided if the metadata entred does not conform to
+   the specification in the schema as in the case of having an "age" less than
    or equal to 0.
 
 
 Shortcuts
 ---------
 
-Windows/Linux
--------------
-
-===========         ============= =======
+==================  ============= =======
 Description         Windows/Linux Mac OSX
-===========         ============= =======
+==================  ============= =======
 Create new dataset  Ctrl+N        Cmd+N
 Edit metadata       Ctrl+M        Cmd+M
 Edit preferences    Ctrl+P        Cmd+,
 Quit                Ctrl+Q        Cmd+Q
-===========         ============= =======
+==================  ============= =======
