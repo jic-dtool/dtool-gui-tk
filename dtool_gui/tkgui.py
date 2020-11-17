@@ -676,7 +676,7 @@ class App(tk.Tk):
         # Add content to the menus.
         self._add_menu_command(
             menu=menu_file,
-            label="New file...",
+            label="New dataset...",
             accelerator_key="N",
             cmd=self.new_dataset,
             event_cmd=self._new_dataset_event
@@ -764,6 +764,10 @@ class App(tk.Tk):
     def edit_metadata(self):
         """Open window with form to edit a dataset's metadata."""
         logger.info(self.edit_metadata.__doc__)
+        mb.showinfo(
+            "Work in progress...",
+            "It is not possible to edit an existing dataset's metadata yet."
+        )
 
     def _quit_event(self, event):
         self.quit()
