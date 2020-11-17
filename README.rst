@@ -82,7 +82,7 @@ of a more complex metadata schema:
 
    The "New dataset" window of dtool-tk, using a more "complex" metadata
    schema. The optional metadata items "age" and "allowed" have been
-   selected. Feedback is provided if the metadata entred does not conform to
+   selected. Feedback is provided if the metadata entered does not conform to
    the specification in the schema as in the case of having an "age" less than
    or equal to 0.
 
