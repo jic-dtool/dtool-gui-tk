@@ -547,7 +547,7 @@ class NewDataSetWindow(tk.Toplevel):
             mb.showwarning(
                 "Failed to create dataset",
                 "Input directory has not been set"
-        )
+            )
 
         # The number of items is needed for the progress bar.
         num_items = len(list(self.proto_dataset_model._yield_path_handle_tuples()))  # NOQA
@@ -562,7 +562,7 @@ class NewDataSetWindow(tk.Toplevel):
         logger.info("Start creation thread")
         thread.start()
 
-        # Set off function that will continue polling until the thread is finished.
+        # Call function that will continue polling until the thread is done.
         self._check_create_thread(thread)
 
     def refresh(self):
