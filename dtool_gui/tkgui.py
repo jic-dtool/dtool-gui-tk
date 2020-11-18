@@ -476,6 +476,7 @@ class NewDataSetWindow(tk.Toplevel):
         self.root = master
 
         self.metadata_schema_list_model = MetadataSchemaListModel()
+        self.metadata_schema_list_model.put_metadata_schema_directory(METADATA_SCHEMAS_DIR)
         assert "basic" in self.metadata_schema_list_model.metadata_model_names
         default_metadata_model = self.metadata_schema_list_model.get_metadata_model("basic")  # NOQA
 
