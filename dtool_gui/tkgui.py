@@ -549,6 +549,14 @@ class NewDataSetWindow(tk.Toplevel):
                 "Failed to create dataset",
                 "Input directory has not been set"
             )
+            return
+
+        if self.root.base_uri_model.get_base_uri() is None:
+            mb.showwarning(
+                "Failed to create dataset",
+                "Local base URI has not been configured. Configure it in the preferences."
+            )
+            return
 
         # The number of items is needed for the progress bar.
         num_items = len(list(self.proto_dataset_model._yield_path_handle_tuples()))  # NOQA
@@ -727,6 +735,14 @@ class App(tk.Tk):
 
         self.dataset_frame = DataSetFrame(self.mainframe, self)
         self.dataset_frame.grid(row=0, column=1, sticky="new")
+
+        # Ask the user to configure the local base URI if it has not been configured.
+        if self.base_uri_model.get_base_uri() is None:
+            mb.showinfo(
+                "Configure local base URI",
+                "Please configure the local base URI in the preferences."
+                "This is where datasets will be created on your computer."
+            )
 
     def _get_accelerator(self, key):
         key = key.upper()
