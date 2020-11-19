@@ -476,7 +476,7 @@ class NewDataSetWindow(tk.Toplevel):
         self.root = master
 
         self.metadata_schema_list_model = MetadataSchemaListModel()
-        self.metadata_schema_list_model.put_metadata_schema_directory(METADATA_SCHEMAS_DIR)
+        self.metadata_schema_list_model.put_metadata_schema_directory(METADATA_SCHEMAS_DIR)  # NOQA
         assert "basic" in self.metadata_schema_list_model.metadata_model_names
         default_metadata_model = self.metadata_schema_list_model.get_metadata_model("basic")  # NOQA
 
@@ -554,7 +554,7 @@ class NewDataSetWindow(tk.Toplevel):
         if self.root.base_uri_model.get_base_uri() is None:
             mb.showwarning(
                 "Failed to create dataset",
-                "Local base URI has not been configured. Configure it in the preferences."
+                "Local base URI has not been configured. Configure it in the preferences."  # NOQA
             )
             return
 
@@ -736,7 +736,7 @@ class App(tk.Tk):
         self.dataset_frame = DataSetFrame(self.mainframe, self)
         self.dataset_frame.grid(row=0, column=1, sticky="new")
 
-        # Ask the user to configure the local base URI if it has not been configured.
+        # Ask the user to configure the local base URI if it has not been configured.  # NOQA
         if self.base_uri_model.get_base_uri() is None:
             mb.showinfo(
                 "Configure local base URI",
