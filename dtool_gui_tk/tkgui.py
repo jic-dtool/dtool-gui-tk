@@ -14,7 +14,7 @@ import tkinter.ttk as ttk
 import tkinter.filedialog as fd
 import tkinter.messagebox as mb
 
-from dtool_gui.models import (
+from dtool_gui_tk.models import (
     LocalBaseURIModel,
     DataSetListModel,
     DataSetModel,

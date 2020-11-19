@@ -16,7 +16,7 @@ setup(
     url=url,
     install_requires=[],
     entry_points={
-        'console_scripts': ['dtool-tk=dtool_gui.tkgui:tkgui'],
+        'console_scripts': ['dtool-tk=dtool_gui_tk.tkgui:tkgui'],
     },
     download_url="{}/tarball/{}".format(url, version),
     license="MIT"
