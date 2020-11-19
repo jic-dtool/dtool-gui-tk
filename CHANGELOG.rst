@@ -32,13 +32,14 @@ Security
 ^^^^^^^^
 
 
-[0.1.0] - 2020-11-19
+[0.1.1] - 2020-11-19
 --------------------
 
 Fixed
 ^^^^^
 
 - Added dependencies to setup.py
+- Add __version__ to __init__.py
 
 
 [0.1.0] - 2020-11-19
