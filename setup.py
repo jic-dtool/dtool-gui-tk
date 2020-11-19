@@ -5,8 +5,8 @@ version = "0.1.0"
 readme = open('README.rst').read()
 
 setup(
-    name="dtool-gui",
-    packages=["dtool_gui"],
+    name="dtool-gui-tk",
+    packages=["dtool_gui_tk"],
     version=version,
     description="Graphical user interface for managing data using dtool",
     long_description=readme,

@@ -10,7 +10,7 @@ from ruamel.yaml import YAML
 # This is a hack.
 from dtool_info.inventory import _dataset_info
 
-from dtool_gui.metadata import MetadataSchemaItem
+from dtool_gui_tk.metadata import MetadataSchemaItem
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ def get_json_schema_type(obj):
 
     :param obj: object to return the JSON schema type for
     :returns: JSON schema type as a string
-    :raises: :class:`dtool_gui.models.UnsupportedTypeError` if the value is a
+    :raises: :class:`dtool_gui_tk.models.UnsupportedTypeError` if the value is a
              complex data structure. Currently supported data types are
              ``str``, ``int``, ``float``, and ``bool``.
     """
@@ -53,11 +53,11 @@ def metadata_model_from_dataset(dataset):
     the value extracted from the dataset is used.
 
     :param dataset: :class:`dtoolcore.DataSet`
-    :returns: :class:`dtool_gui.models.MetadataModel` instance
-    :raises dtool_gui.models.MetadataConflictError: if the values extracted
+    :returns: :class:`dtool_gui_tk.models.MetadataModel` instance
+    :raises dtool_gui_tk.models.MetadataConflictError: if the values extracted
         from the readme and annotations do not match for a particular key
-    :raises dtool_gui.models.UnsupportedTypeError: if the value is not
-        supported, see :func:`dtool_gui.models.get_json_schema_type`.
+    :raises dtool_gui_tk.models.UnsupportedTypeError: if the value is not
+        supported, see :func:`dtool_gui_tk.models.get_json_schema_type`.
     """
     metadata_model = MetadataModel()
 
@@ -229,10 +229,10 @@ class MetadataSchemaListModel(_ConfigFileVariableBaseModel):
         return sorted([os.path.splitext(f)[0] for f in filenames])
 
     def get_metadata_model(self, name):
-        """Returns class:`dtool_gui.models.MetadataModel` instance.
+        """Returns class:`dtool_gui_tk.models.MetadataModel` instance.
 
         :param name: metadata model name
-        :returns: `dtool_gui.models.MetadataModel instance
+        :returns: `dtool_gui_tk.models.MetadataModel instance
         """
         metadata_schema_directory = self.get_metadata_schema_directory()
         schema_fpath = os.path.join(metadata_schema_directory, name + ".json")
@@ -304,7 +304,7 @@ class MetadataModel(object):
     def selected_optional_item_names(self):
         """Return list of names of selected optional metadata items.
 
-        A :class:`dtool_gui.models.MetadataModel` instance can have optional
+        A :class:`dtool_gui_tk.models.MetadataModel` instance can have optional
         :class:`metadata.MetadataSchemaItem` instances. However for these to be
         included when the dataset metadata is set/updated they need to be
         selected. This property lists the names of the selected optional
@@ -319,7 +319,7 @@ class MetadataModel(object):
         """Return list of names of deselected optional metadata items.
 
         Inverse of
-        :func:`dtool_gui.models.MetadataModel.selected_optional_item_names`
+        :func:`dtool_gui_tk.models.MetadataModel.selected_optional_item_names`
 
         :returns: names of deselected optional items in the metadata schema
         """
@@ -410,7 +410,7 @@ class MetadataModel(object):
         """Return JSON schema of object describing the metadata model.
 
         :returns: JSON schema representing the current state of the
-                  :class:`dtool_gui.models.MetadataModel` as a dictionary
+                  :class:`dtool_gui_tk.models.MetadataModel` as a dictionary
         """
         master_schema = {
             "type": "object",
@@ -544,7 +544,7 @@ class DataSetModel(object):
     def metadata_model(self):
         """Return the metadata model.
 
-        :returns: :class:`dtool_gui.models.MetadataModel` instance
+        :returns: :class:`dtool_gui_tk.models.MetadataModel` instance
         """
         return self._metadata_model
 
@@ -584,13 +584,13 @@ class DataSetModel(object):
         """Update dataset with any changes made to the metadata model.
 
         Sets all the metadata for all
-        :attr:`dtool_gui.models.MetadataModel.in_scope_item_names`
+        :attr:`dtool_gui_tk.models.MetadataModel.in_scope_item_names`
 
         Both the dataset readme and annotations are updated.
 
-        :raises dtool_gui.models.MetadataValidationError: if the metadata value
+        :raises dtool_gui_tk.models.MetadataValidationError: if the metadata value
             is not valid according to its schema
-        :raises dtool_gui.models.MissingRequiredMetadataError: if a required
+        :raises dtool_gui_tk.models.MissingRequiredMetadataError: if a required
             metadata value has not been set
         """
 
@@ -665,7 +665,7 @@ class ProtoDataSetModel(object):
     def metadata_model(self):
         """Return the metadata model.
 
-        :returns: :class:`dtool_gui.models.MetadataModel` instance or None if
+        :returns: :class:`dtool_gui_tk.models.MetadataModel` instance or None if
                   it has not been set
         """
         return self._metadata_model
@@ -700,7 +700,7 @@ class ProtoDataSetModel(object):
         """Set the input directory for the dataset creation process.
 
         :param input_directory: path to the input directory
-        :raises: dtool_gui.models.DirectoryDoesNotExistError if the input
+        :raises: dtool_gui_tk.models.DirectoryDoesNotExistError if the input
                  directory does not exist
         """
         if not os.path.isdir(input_directory):
@@ -712,27 +712,27 @@ class ProtoDataSetModel(object):
     def set_base_uri_model(self, base_uri_model):
         """Set the base URI model.
 
-        :param base_uri_model: :class:`dtool_gui.models.LocalBaseURIModel`
+        :param base_uri_model: :class:`dtool_gui_tk.models.LocalBaseURIModel`
         """
         self._base_uri_model = base_uri_model
 
     def set_metadata_model(self, metadata_model):
         """Set the metadata model.
 
-        :param metadata_model: :class:`dtool_gui.models.MetadataModel`
+        :param metadata_model: :class:`dtool_gui_tk.models.MetadataModel`
         """
         self._metadata_model = metadata_model
 
     def create(self, progressbar=None):
         """Create the dataset in the base URI.
 
-        :raises dtool_gui.models.MissingInputDirectoryError: if the input
+        :raises dtool_gui_tk.models.MissingInputDirectoryError: if the input
             directory has not been set
-        :raises dtool_gui.models.MissingDataSetNameError: if the dataset name
+        :raises dtool_gui_tk.models.MissingDataSetNameError: if the dataset name
             has not been set.
-        :raises dtool_gui.models.MissingBaseURIModelError: if the base URI
+        :raises dtool_gui_tk.models.MissingBaseURIModelError: if the base URI
             model has not been set.
-        :raises dtool_gui.models.MissingMetadataModelError: if the metadata
+        :raises dtool_gui_tk.models.MissingMetadataModelError: if the metadata
             model has not been set.
         """
 
@@ -816,7 +816,7 @@ class DataSetListModel(object):
     def set_base_uri_model(self, base_uri_model):
         """Set the base URI model.
 
-        :param base_uri_model: dtool_gui.models.LocalBaseURIModel
+        :param base_uri_model: dtool_gui_tk.models.LocalBaseURIModel
         """
         self._base_uri_model = base_uri_model
         if self._base_uri_model.get_base_uri() is not None:

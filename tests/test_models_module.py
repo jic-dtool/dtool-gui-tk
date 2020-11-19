@@ -9,7 +9,7 @@ import pytest
 
 def test_LocalBaseURIModel(tmp_dir_fixture):  # NOQA
 
-    from dtool_gui.models import LocalBaseURIModel
+    from dtool_gui_tk.models import LocalBaseURIModel
     import dtoolcore.utils
 
     config_path = os.path.join(tmp_dir_fixture, "config.json")
@@ -32,7 +32,7 @@ def test_LocalBaseURIModel(tmp_dir_fixture):  # NOQA
 
 def test_MetadataModel():
 
-    from dtool_gui.models import MetadataModel
+    from dtool_gui_tk.models import MetadataModel
 
     metadata_model = MetadataModel()
 
@@ -60,7 +60,7 @@ def test_MetadataModel():
     expected_item_names = sorted(master_schema["properties"].keys())
     assert metadata_model.item_names == expected_item_names
 
-    from dtool_gui.metadata import MetadataSchemaItem
+    from dtool_gui_tk.metadata import MetadataSchemaItem
     project_schema = master_schema["properties"]["project"]
     project_metadata_schema_item = MetadataSchemaItem(project_schema)
     assert metadata_model.get_schema("project") == project_metadata_schema_item  # NOQA
@@ -97,7 +97,7 @@ def test_MetadataModel():
 
 def test_MetadataModelSchemaBuilderAPI():
 
-    from dtool_gui.models import MetadataModel
+    from dtool_gui_tk.models import MetadataModel
 
     metadata_model = MetadataModel()
     assert metadata_model.required_item_names == []
@@ -127,7 +127,7 @@ def test_MetadataModelSchemaBuilderAPI():
     assert metadata_model.required_item_names == ["project"]
     assert metadata_model.item_names == ["age", "project"]
 
-    from dtool_gui.metadata import MetadataSchemaItem
+    from dtool_gui_tk.metadata import MetadataSchemaItem
     project_metadata_schema_item = MetadataSchemaItem(project_schema)
     assert metadata_model.get_schema("project") == project_metadata_schema_item  # NOQA
 
@@ -146,7 +146,7 @@ def test_MetadataModel_selected_API():
     # A MetadataModel can have "optional" meta data items.
     # For these to be used they need to be "selected" first."
 
-    from dtool_gui.models import MetadataModel
+    from dtool_gui_tk.models import MetadataModel
 
     metadata_model = MetadataModel()
 
@@ -201,7 +201,7 @@ def test_MetadataModel_selected_API():
 
 def test_MetadataModel_issues_API():
 
-    from dtool_gui.models import MetadataModel
+    from dtool_gui_tk.models import MetadataModel
 
     metadata_model = MetadataModel()
 
@@ -229,7 +229,7 @@ def test_MetadataModel_issues_API():
 
 
 def test_MetadataModel_str_to_typed():
-    from dtool_gui.models import MetadataModel, UnsupportedTypeError
+    from dtool_gui_tk.models import MetadataModel, UnsupportedTypeError
 
     master_schema = {
         "type": "object",
@@ -275,7 +275,7 @@ def test_MetadataModel_str_to_typed():
 
 def test_ProtoDataSetModel(tmp_dir_fixture):  # NOQA
 
-    from dtool_gui.models import ProtoDataSetModel
+    from dtool_gui_tk.models import ProtoDataSetModel
 
     proto_dataset_model = ProtoDataSetModel()
 
@@ -287,7 +287,7 @@ def test_ProtoDataSetModel(tmp_dir_fixture):  # NOQA
     proto_dataset_model.set_input_directory(tmp_dir_fixture)
     assert proto_dataset_model.input_directory == tmp_dir_fixture
 
-    from dtool_gui.models import DirectoryDoesNotExistError
+    from dtool_gui_tk.models import DirectoryDoesNotExistError
     with pytest.raises(DirectoryDoesNotExistError):
         proto_dataset_model.set_input_directory("does not exist")
     assert proto_dataset_model.input_directory == tmp_dir_fixture
@@ -295,7 +295,7 @@ def test_ProtoDataSetModel(tmp_dir_fixture):  # NOQA
 
 def test_DataSetListModel(tmp_dir_fixture):  # NOQA
 
-    from dtool_gui.models import DataSetListModel, LocalBaseURIModel
+    from dtool_gui_tk.models import DataSetListModel, LocalBaseURIModel
 
     dataset_list_model = DataSetListModel()
     assert dataset_list_model.base_uri is None
@@ -348,7 +348,7 @@ def test_DataSetListModel(tmp_dir_fixture):  # NOQA
 
 def test_MetadataSchemaListModel(tmp_dir_fixture):  # NOQA
 
-    from dtool_gui.models import MetadataSchemaListModel
+    from dtool_gui_tk.models import MetadataSchemaListModel
 
     config_path = os.path.join(tmp_dir_fixture, "config.json")
     assert not os.path.isfile(config_path)
@@ -397,7 +397,7 @@ def test_MetadataSchemaListModel(tmp_dir_fixture):  # NOQA
     assert another_model.metadata_model_names == ["advanced", "basic"]
 
     # Test schema retrieval.
-    from dtool_gui.models import MetadataModel
+    from dtool_gui_tk.models import MetadataModel
     advanced_model = MetadataModel()
     advanced_model.load_master_schema(advanced_schema)
 
@@ -408,7 +408,7 @@ def test_MetadataSchemaListModel(tmp_dir_fixture):  # NOQA
 def test_DataSetModel_basic(tmp_dir_fixture):  # NOQA
 
     # Create an empty dataset model.
-    from dtool_gui.models import DataSetModel
+    from dtool_gui_tk.models import DataSetModel
     dataset_model = DataSetModel()
     assert dataset_model.name is None
     assert dataset_model.metadata_model is None
@@ -468,7 +468,7 @@ def test_DataSetModel_basic(tmp_dir_fixture):  # NOQA
 
     # DataSetModel.update_metadata() should raise MissingRequiredMetadataError
     # and MetadataValidationError if appropriate.
-    from dtool_gui.models import (
+    from dtool_gui_tk.models import (
         MissingRequiredMetadataError,
         MetadataValidationError
     )
@@ -501,7 +501,7 @@ def test_DataSetModel_basic(tmp_dir_fixture):  # NOQA
 
     # If the metadata model is missing DataSetModel.update_metadata
     # should raise MissingMetadataModelError.
-    from dtool_gui.models import MissingMetadataModelError
+    from dtool_gui_tk.models import MissingMetadataModelError
     dataset_model._metadata_model = None
     with pytest.raises(MissingMetadataModelError):
         dataset_model.update_metadata()
@@ -519,7 +519,7 @@ def test_DataSetModel_update_metadata_works_on_annotations_and_readme(tmp_dir_fi
         ds_creator.put_annotation("project", "test")
 
     # Create a dataset model from the dataset
-    from dtool_gui.models import DataSetModel
+    from dtool_gui_tk.models import DataSetModel
     dataset_model = DataSetModel()
     dataset_model.load_dataset(ds_creator.uri)
 
@@ -548,7 +548,7 @@ def test_DataSetModel_update_metadata_works_on_annotations_and_readme(tmp_dir_fi
 
 def test_json_schema_from_dataset_only_readme(tmp_dir_fixture):  # NOQA
     from dtoolcore import DataSet, DataSetCreator
-    from dtool_gui.models import metadata_model_from_dataset, MetadataModel
+    from dtool_gui_tk.models import metadata_model_from_dataset, MetadataModel
 
     # Only readme.
     readme = "---\nproject: test\nage: 3\ntemperature: 25.5"
@@ -577,7 +577,7 @@ def test_json_schema_from_dataset_only_readme(tmp_dir_fixture):  # NOQA
 
 def test_json_schema_from_dataset_only_annotations(tmp_dir_fixture):  # NOQA
     from dtoolcore import DataSet, DataSetCreator
-    from dtool_gui.models import metadata_model_from_dataset, MetadataModel
+    from dtool_gui_tk.models import metadata_model_from_dataset, MetadataModel
 
     with DataSetCreator("only-annotations", tmp_dir_fixture) as ds_creator:
         ds_creator.put_annotation("an-int", 3)
@@ -619,7 +619,7 @@ def test_json_schema_from_dataset_only_annotations(tmp_dir_fixture):  # NOQA
     assert metadata_model_from_dataset(dataset) == expected_metadata_model
 
     # Unsupported type.
-    from dtool_gui.models import UnsupportedTypeError
+    from dtool_gui_tk.models import UnsupportedTypeError
     with DataSetCreator("unsupported-type", tmp_dir_fixture) as ds_creator:
         ds_creator.put_annotation("complex-object", {"x": 1, "y": 2})
         ds_creator.put_annotation("an-int", 3)
@@ -631,7 +631,7 @@ def test_json_schema_from_dataset_only_annotations(tmp_dir_fixture):  # NOQA
 
 def test_json_schema_from_dataset_readme_and_annotations_diverse_not_conflicting(tmp_dir_fixture):  # NOQA
     from dtoolcore import DataSet, DataSetCreator
-    from dtool_gui.models import metadata_model_from_dataset, MetadataModel
+    from dtool_gui_tk.models import metadata_model_from_dataset, MetadataModel
 
     # Diverse but not conflicting.
     readme = "---\nproject: test"
@@ -661,7 +661,7 @@ def test_json_schema_from_dataset_readme_and_annotations_diverse_not_conflicting
 def test_json_schema_from_dataset_readme_and_annotations_conflicting(tmp_dir_fixture):  # NOQA
 
     from dtoolcore import DataSet, DataSetCreator
-    from dtool_gui.models import metadata_model_from_dataset
+    from dtool_gui_tk.models import metadata_model_from_dataset
     # Identical but missing type.
     readme = "---\nproject: test\nage: 4"
     with DataSetCreator("readme-and-annotations", tmp_dir_fixture, readme) as ds_creator:  # NOQA
@@ -669,7 +669,7 @@ def test_json_schema_from_dataset_readme_and_annotations_conflicting(tmp_dir_fix
         uri = ds_creator.uri
     dataset = DataSet.from_uri(uri)
 
-    from dtool_gui.models import MetadataConflictError
+    from dtool_gui_tk.models import MetadataConflictError
     with pytest.raises(MetadataConflictError):
         metadata_model_from_dataset(dataset)
 
@@ -692,12 +692,12 @@ def test_json_schema_from_dataset_schema_annotation(tmp_dir_fixture):  # NOQA
     dataset = DataSet.from_uri(ds_creator.uri)
 
     # Create the expected model from the schema.
-    from dtool_gui.models import MetadataModel
+    from dtool_gui_tk.models import MetadataModel
     expected_metadata_model = MetadataModel()
     expected_metadata_model.load_master_schema(metadata_schema)
 
     # Test that the function returns the correct model.
-    from dtool_gui.models import metadata_model_from_dataset
+    from dtool_gui_tk.models import metadata_model_from_dataset
     actual_metadata_model = metadata_model_from_dataset(dataset)
     assert actual_metadata_model == expected_metadata_model
 
@@ -722,13 +722,13 @@ def test_json_schema_from_dataset_schema_annotation_with_conflicting_type_in_rea
     dataset = DataSet.from_uri(ds_creator.uri)
 
     # Create the expected model from the schema.
-    from dtool_gui.models import MetadataModel
+    from dtool_gui_tk.models import MetadataModel
     expected_metadata_model = MetadataModel()
     expected_metadata_model.load_master_schema(metadata_schema)
     expected_metadata_model.set_value("project", 1)  # Expecting incorrect type.  # NOQA
     expected_metadata_model.set_value("age", "old")  # Expecting incorrect type.  # NOQA
 
     # Test that the function returns the correct model.
-    from dtool_gui.models import metadata_model_from_dataset
+    from dtool_gui_tk.models import metadata_model_from_dataset
     actual_metadata_model = metadata_model_from_dataset(dataset)
     assert actual_metadata_model == expected_metadata_model
