@@ -1,13 +1,29 @@
-dtool-tk: a graphical user interface for managing data using dtool
-==================================================================
+dtool-gui-tk: a graphical user interface for managing data using dtool
+======================================================================
 
+.. image:: https://badge.fury.io/py/dtool-gui-tk.svg
+   :target: http://badge.fury.io/py/dtool-gui-tk
+   :alt: PyPi package
+
+- GitHub: https://github.com/jic-dtool/dtool-gui-tk
+- PyPI: https://pypi.python.org/pypi/dtool-gui-tk
+- Free software: MIT License
+
+Features
+--------
+
+- List datasets
+- View dataset metadata
+- Create new datasets
 
 Installation
 ------------
 
+This package requires Python3, i.e. it is not compatible with Python2.
+
 ::
 
-    python setup.py install
+    pip install dtool-gui-tk
 
 Usage
 -----
