@@ -14,10 +14,8 @@ setup(
     author="Tjelvar Olsson",
     author_email="tjelvar.olsson@jic.ac.uk",
     url=url,
-    install_requires=[
-        "dtoolcore>=3.17.0",
-        "jsonschema",
-    ],
+    download_url="{}/tarball/{}".format(url, version),
+    install_requires=[],
     entry_points={
         'console_scripts': ['dtool-tk=dtool_gui.tkgui:tkgui'],
     },
