@@ -23,8 +23,8 @@ def get_json_schema_type(obj):
 
     :param obj: object to return the JSON schema type for
     :returns: JSON schema type as a string
-    :raises: :class:`dtool_gui_tk.models.UnsupportedTypeError` if the value is a
-             complex data structure. Currently supported data types are
+    :raises: :class:`dtool_gui_tk.models.UnsupportedTypeError` if the value is
+             a complex data structure. Currently supported data types are
              ``str``, ``int``, ``float``, and ``bool``.
     """
     if isinstance(obj, str):
@@ -588,8 +588,8 @@ class DataSetModel(object):
 
         Both the dataset readme and annotations are updated.
 
-        :raises dtool_gui_tk.models.MetadataValidationError: if the metadata value
-            is not valid according to its schema
+        :raises dtool_gui_tk.models.MetadataValidationError: if the metadata
+            value is not valid according to its schema
         :raises dtool_gui_tk.models.MissingRequiredMetadataError: if a required
             metadata value has not been set
         """
@@ -665,8 +665,8 @@ class ProtoDataSetModel(object):
     def metadata_model(self):
         """Return the metadata model.
 
-        :returns: :class:`dtool_gui_tk.models.MetadataModel` instance or None if
-                  it has not been set
+        :returns: :class:`dtool_gui_tk.models.MetadataModel` instance or None
+                  if it has not been set
         """
         return self._metadata_model
 
@@ -728,8 +728,8 @@ class ProtoDataSetModel(object):
 
         :raises dtool_gui_tk.models.MissingInputDirectoryError: if the input
             directory has not been set
-        :raises dtool_gui_tk.models.MissingDataSetNameError: if the dataset name
-            has not been set.
+        :raises dtool_gui_tk.models.MissingDataSetNameError: if the dataset
+            name has not been set.
         :raises dtool_gui_tk.models.MissingBaseURIModelError: if the base URI
             model has not been set.
         :raises dtool_gui_tk.models.MissingMetadataModelError: if the metadata
