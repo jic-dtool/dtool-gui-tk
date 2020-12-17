@@ -167,8 +167,17 @@ class DataSetFrame(ttk.Frame):
             ttk.Label(self, text="Dataset contains unsupported metadata types").grid(row=2, column=0, columnspan=2, sticky="ew")  # NOQA
 
         else:
-            for i, name in enumerate(self.root.dataset_model.metadata_model.in_scope_item_names):  # NOQA
-                value = self.root.dataset_model.metadata_model.get_value(name)
+            for i, name in enumerate(
+                self.root.dataset_model.metadata_model.required_item_names
+                + self.root.dataset_model.metadata_model.optional_item_names
+            ):
+
+                # Get the value from the dataset if it has been set.
+                try:
+                    value = self.root.dataset_model._dataset.get_annotation(name)  # NOQA
+                except dtoolcore.DtoolCoreKeyError:
+                    # A metadata item has not been set.
+                    continue
                 value_as_str = str(value)
                 row = i + 2
                 ttk.Label(self, text=name).grid(row=row, column=0, sticky="e")  # NOQA
