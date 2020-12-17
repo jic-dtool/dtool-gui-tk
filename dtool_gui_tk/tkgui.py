@@ -549,6 +549,13 @@ class NewDataSetWindow(tk.Toplevel):
             logger.warning("Dataset creation exception: {}".format(e))
             mb.showwarning("Failed to create dataset", e)
         logger.info("Finished dataset creation")
+        mb.showinfo(
+            "Dataset created",
+            message="{} dataset created at: {}".format(
+                self.proto_dataset_model._name,
+                self.proto_dataset_model._uri
+            )
+        )
 
     def create(self):
         # Need to check this as _yield_path_handle_tuples will fail if the
