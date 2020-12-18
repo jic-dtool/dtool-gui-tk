@@ -317,10 +317,15 @@ def test_DataSetListModel(tmp_dir_fixture):  # NOQA
     # Create three empty datasets in the base URI.
     from dtoolcore import DataSetCreator
     dataset_names = sorted(["ds1", "ds2", "ds3"])
+    creator_usernames = ("not", "in", "order")
     dataset_uris = {}
-    for name in dataset_names:
-        with DataSetCreator(name=name, base_uri=base_uri) as ds_creator:
-            dataset_uris[name] = ds_creator.uri
+    for (ds_name, creator_name) in zip(dataset_names, creator_usernames):
+        with DataSetCreator(
+            name=ds_name,
+            base_uri=base_uri,
+            creator_username=creator_name
+        ) as ds_creator:
+            dataset_uris[ds_name] = ds_creator.uri
 
     # Need to update the dataset list model for the datasets to be discovered.
     assert len(dataset_list_model.names) == 0
@@ -344,6 +349,23 @@ def test_DataSetListModel(tmp_dir_fixture):  # NOQA
     assert isinstance(props_generator, Iterable)
     first = next(props_generator)
     assert "name" in first
+    assert first["name"] == "ds1"
+    assert "creator" in first
+    assert first["creator"] == "not"
+
+    # Test yield_properties with sorting.
+    props_generator = dataset_list_model.yield_properties(sort_by="creator")
+    try:
+        from collections.abc import Iterable
+    except ImportError:
+        from collections import Iterable
+    assert isinstance(props_generator, Iterable)
+    first = next(props_generator)
+    assert "name" in first
+    assert first["name"] == "ds2"
+    assert "creator" in first
+    assert first["creator"] == "in"
+
 
 
 def test_MetadataSchemaListModel(tmp_dir_fixture):  # NOQA

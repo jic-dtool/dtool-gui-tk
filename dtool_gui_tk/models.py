@@ -2,6 +2,8 @@ import os
 import logging
 import json
 
+from operator import itemgetter
+
 import dtoolcore
 import dtoolcore.utils
 
@@ -838,8 +840,12 @@ class DataSetListModel(object):
         for ds in dtoolcore.iter_datasets_in_base_uri(base_uri):
             self._datasets.append(ds)
 
-    def yield_properties(self):
+    def yield_properties(self, sort_by="name"):
         """Return iterable that yields dictionaries with dataset properties."""
-        for ds in self._datasets:
-            # This is a hack.
-            yield _dataset_info(ds)
+        # The use of "_dataset_info"  is a hack.
+        _dataset_info_list = [_dataset_info(ds) for ds in self._datasets]
+        print(_dataset_info_list)
+
+        assert sort_by in ("name", "size_int", "num_items", "creator", "date")
+        for info in sorted(_dataset_info_list, key=itemgetter(sort_by)):
+            yield info
