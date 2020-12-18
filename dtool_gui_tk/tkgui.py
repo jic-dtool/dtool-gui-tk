@@ -474,15 +474,15 @@ class MetadataFormFrame(ttk.Frame):
             row = self.setup_input_field(row, name)
 
 
-class NewDataSetWindow(tk.Toplevel):
+class NewDataSetFrame(ttk.Frame):
     """Preferences window."""
 
-    def __init__(self, master):
+    def __init__(self, master, root):
         super().__init__(master)
         logger.info("Initialising {}".format(self))
-        self.title("New dataset")
         self.focus_set()
-        self.root = master
+        self.master = master
+        self.root = root
 
         self.metadata_schema_list_model = MetadataSchemaListModel()
         self.metadata_schema_list_model.put_metadata_schema_directory(METADATA_SCHEMAS_DIR)  # NOQA
@@ -490,18 +490,8 @@ class NewDataSetWindow(tk.Toplevel):
         default_metadata_model = self.metadata_schema_list_model.get_metadata_model("basic")  # NOQA
 
         self.proto_dataset_model = ProtoDataSetModel()
-        self.proto_dataset_model.set_base_uri_model(self.master.base_uri_model)
+        self.proto_dataset_model.set_base_uri_model(self.root.base_uri_model)
         self.proto_dataset_model.set_metadata_model(default_metadata_model)
-
-        # If we use the code below for styling the NewDataSetConfigFrame,
-        # OptionalMetadataFrame, MetadataFormFrame and ttk.Button need to have
-        # mainframe as their first argument. However, some of these currently
-        # call select_optional_metadata, deselect_optional_metadata, create
-        # and refresh. That stops working in that case as they are not on the
-        # mainframe object. The only reason to change to the below is to do
-        # with background styling of the tk.Toplevel window.
-#       mainframe = ttk.Frame(self)
-#       mainframe.grid(row=0, column=0, sticky="nwes")
 
         self.new_dataset_config_frame = NewDataSetConfigFrame(self, self.root)
         self.new_dataset_config_frame.grid(row=0, column=0, columnspan=2)
@@ -540,7 +530,7 @@ class NewDataSetWindow(tk.Toplevel):
         else:
             self.create_btn.config(state=tk.NORMAL)
             self.progressbar.destroy()
-            self.master.refresh()
+            self.root.refresh()
 
     def _run_create(self):
         try:
@@ -593,6 +583,16 @@ class NewDataSetWindow(tk.Toplevel):
     def refresh(self):
         self.optional_metadata_frame.refresh()
         self.metadata_form_frame.refresh()
+
+
+class NewDataSetWindow(tk.Toplevel):
+    """New dataset window."""
+    def __init__(self, master):
+        super().__init__(master)
+        self.title("Create dataset")
+        logger.info("Initialising {}".format(self))
+        new_dataset_frame = NewDataSetFrame(self, master)
+        new_dataset_frame.grid(row=0, column=0, sticky="nwes")
 
 
 class PreferencesWindow(tk.Toplevel):
