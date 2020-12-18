@@ -445,7 +445,7 @@ class MetadataFormFrame(ttk.Frame):
 
         # Add button to enable the removal of the field if it is optional.
         if name in self.metadata_model.optional_item_names:
-            btn = tk.Button(self.label_frame, text="Remove")
+            btn = ttk.Button(self.label_frame, text="Remove")
             btn._name_to_clear = name
             btn.bind("<Button-1>", self.master.deselect_optional_metadata)
             btn.grid(row=row, column=2)
