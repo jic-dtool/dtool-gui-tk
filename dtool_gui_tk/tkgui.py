@@ -401,7 +401,7 @@ class MetadataFormFrame(ttk.Frame):
         self.entries[name] = e
 
     def setup_entry_input_field(self, row, name, value):
-        e = tk.Entry(self.label_frame)
+        e = ttk.Entry(self.label_frame)
         if value is not None:
             e.insert(0, str(value))
         e.name = name
@@ -430,7 +430,7 @@ class MetadataFormFrame(ttk.Frame):
         if name in self.metadata_model.required_item_names:
             display_name = name + "*"
 
-        lbl = tk.Label(self.label_frame, text=display_name)
+        lbl = ttk.Label(self.label_frame, text=display_name)
         lbl.grid(row=row, column=0, sticky="e")
 
         value = self.metadata_model.get_value(name)
