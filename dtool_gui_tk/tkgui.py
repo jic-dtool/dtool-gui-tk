@@ -65,6 +65,9 @@ class DataSetListFrame(ttk.Frame):
         super().__init__(master)
         logger.info("Initialising {}".format(self))
 
+        self.sort_key = "size_int"
+        self.reverse_sort_order = False
+
         # Make sure that the GUI expands/shrinks when the window is resized.
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
@@ -78,11 +81,11 @@ class DataSetListFrame(ttk.Frame):
             selectmode="browse",
             columns=self.columns
         )
-        self.dataset_list.heading("name", text="Dataset name")
-        self.dataset_list.heading("size_str", text="Size")
-        self.dataset_list.heading("num_items", text="Num items")
-        self.dataset_list.heading("creator", text="Creator")
-        self.dataset_list.heading("date", text="Date")
+        self.dataset_list.heading("name", text="Dataset name", command=self.sort_by_name)  # NOQA
+        self.dataset_list.heading("size_str", text="Size", command=self.sort_by_size)  # NOQA
+        self.dataset_list.heading("num_items", text="Num items", command=self.sort_by_num_items)  # NOQA
+        self.dataset_list.heading("creator", text="Creator", command=self.sort_by_creator)  # NOQA
+        self.dataset_list.heading("date", text="Date", command=self.sort_by_date)  # NOQA
         self.dataset_list.column("size_str", width=80, anchor="e")
         self.dataset_list.column("num_items", width=80, anchor="e")
         self.dataset_list.column("creator", width=80, anchor="w")
@@ -108,6 +111,29 @@ class DataSetListFrame(ttk.Frame):
 
         self.refresh()
 
+    def _sort(self, feature):
+        if self.sort_key == feature:
+            self.reverse_sort_order = not self.reverse_sort_order
+        else:
+            self.sort_key = feature
+            self.reverse_sort_order = False
+        self.refresh()
+
+    def sort_by_name(self):
+        self._sort("name")
+
+    def sort_by_size(self):
+        self._sort("size_int")
+
+    def sort_by_num_items(self):
+        self._sort("num_items")
+
+    def sort_by_creator(self):
+        self._sort("creator")
+
+    def sort_by_date(self):
+        self._sort("date")
+
     def update_selected_dataset(self, event):
         selected = self.dataset_list.selection()[0]
         index = self.dataset_list.index(selected)
@@ -120,7 +146,10 @@ class DataSetListFrame(ttk.Frame):
         logger.info("Refreshing {}".format(self))
         self.dataset_list.delete(*self.dataset_list.get_children())
         self.root.dataset_list_model.reindex()
-        for props in self.root.dataset_list_model.yield_properties():
+        for props in self.root.dataset_list_model.yield_properties(
+            sort_by=self.sort_key,
+            reverse=self.reverse_sort_order
+        ):
             values = [props[c] for c in self.columns]
             self.dataset_list.insert("", "end", values=values)
             logger.info("Loaded dataset: {}".format(props["name"]))
