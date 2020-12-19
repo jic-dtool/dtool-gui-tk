@@ -366,6 +366,19 @@ def test_DataSetListModel(tmp_dir_fixture):  # NOQA
     assert "creator" in first
     assert first["creator"] == "in"
 
+    # Test yield_properties.
+    props_generator = dataset_list_model.yield_properties(reverse=True)
+    try:
+        from collections.abc import Iterable
+    except ImportError:
+        from collections import Iterable
+    assert isinstance(props_generator, Iterable)
+    first = next(props_generator)
+    assert "name" in first
+    assert first["name"] == "ds3"
+    assert "creator" in first
+    assert first["creator"] == "order"
+
 
 
 def test_MetadataSchemaListModel(tmp_dir_fixture):  # NOQA

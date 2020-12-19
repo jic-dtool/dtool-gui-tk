@@ -840,12 +840,15 @@ class DataSetListModel(object):
         for ds in dtoolcore.iter_datasets_in_base_uri(base_uri):
             self._datasets.append(ds)
 
-    def yield_properties(self, sort_by="name"):
+    def yield_properties(self, sort_by="name", reverse=False):
         """Return iterable that yields dictionaries with dataset properties."""
         # The use of "_dataset_info"  is a hack.
         _dataset_info_list = [_dataset_info(ds) for ds in self._datasets]
-        print(_dataset_info_list)
 
         assert sort_by in ("name", "size_int", "num_items", "creator", "date")
-        for info in sorted(_dataset_info_list, key=itemgetter(sort_by)):
+        for info in sorted(
+            _dataset_info_list,
+            key=itemgetter(sort_by),
+            reverse=reverse
+        ):
             yield info
