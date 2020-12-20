@@ -313,6 +313,10 @@ def test_DataSetListModel(tmp_dir_fixture):  # NOQA
     assert dataset_list_model.base_uri == base_uri
 
     assert len(dataset_list_model.names) == 0
+    assert dataset_list_model.active_index is None
+    with pytest.raises(IndexError):
+        dataset_list_model.set_active_index(0)
+    assert dataset_list_model.get_uri() is None
 
     # Create three empty datasets in the base URI.
     from dtoolcore import DataSetCreator
@@ -333,12 +337,24 @@ def test_DataSetListModel(tmp_dir_fixture):  # NOQA
     # Update the dataset_list_model.
     dataset_list_model.reindex()
 
+    # Test active_index and set_active_index.
+    assert dataset_list_model.active_index == 0
+    with pytest.raises(IndexError):
+        dataset_list_model.set_active_index(-1)
+    with pytest.raises(IndexError):
+        dataset_list_model.set_active_index(4)
+    dataset_list_model.set_active_index(2)
+    assert dataset_list_model.active_index == 2
+    dataset_list_model.reindex()
+    assert dataset_list_model.active_index == 0
+
     # Access list of dataset names.
     assert dataset_list_model.names == dataset_names
 
     # Get URI from name.
     for i, name in enumerate(dataset_list_model.names):
-        assert dataset_list_model.get_uri(i) == dataset_uris[name]
+        dataset_list_model.set_active_index(i)
+        assert dataset_list_model.get_uri() == dataset_uris[name]
 
     # Test yield_properties.
     props_generator = dataset_list_model.yield_properties()

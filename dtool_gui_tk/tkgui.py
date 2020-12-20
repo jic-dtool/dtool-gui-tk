@@ -137,7 +137,8 @@ class DataSetListFrame(ttk.Frame):
     def update_selected_dataset(self, event):
         selected = self.dataset_list.selection()[0]
         index = self.dataset_list.index(selected)
-        dataset_uri = self.root.dataset_list_model.get_uri(index)
+        self.root.dataset_list_model.set_active_index(index)
+        dataset_uri = self.root.dataset_list_model.get_uri()
         self.root.load_dataset(dataset_uri)
         self.root.dataset_frame.refresh()
 
@@ -153,8 +154,9 @@ class DataSetListFrame(ttk.Frame):
             values = [props[c] for c in self.columns]
             self.dataset_list.insert("", "end", values=values)
             logger.info("Loaded dataset: {}".format(props["name"]))
-        if len(self.root.dataset_list_model.names) > 0:
-            dataset_uri = self.root.dataset_list_model.get_uri(0)
+
+        dataset_uri = self.root.dataset_list_model.get_uri()
+        if dataset_uri is not None:
             self.root.load_dataset(dataset_uri)
         else:
             self.root.dataset_model.clear()
@@ -628,6 +630,14 @@ class NewDataSetWindow(tk.Toplevel):
         new_dataset_frame.grid(row=0, column=0, sticky="nwes")
 
 
+class UpdateDataSetWindow(tk.Toplevel):
+    """Update dataset window."""
+    def __init__(self, master):
+        super().__init__(master)
+        self.title("Create dataset")
+        logger.info("Initialising {}".format(self))
+
+
 class PreferencesWindow(tk.Toplevel):
     """Preferences window."""
 
@@ -738,9 +748,9 @@ class App(tk.Tk):
 
         # Configure the models.
         self.dataset_list_model.set_base_uri_model(self.base_uri_model)
-        if len(self.dataset_list_model.names) > 0:
-            first_uri = self.dataset_list_model.get_uri(0)
-            self.load_dataset(first_uri)
+        dataset_uri = self.dataset_list_model.get_uri()
+        if dataset_uri is not None:
+            self.load_dataset(dataset_uri)
 
         # Determine the platform.
         self.platform = self.tk.call("tk", "windowingsystem")

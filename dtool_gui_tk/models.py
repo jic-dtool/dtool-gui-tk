@@ -796,6 +796,7 @@ class DataSetListModel(object):
     def __init__(self):
         self._base_uri_model = None
         self._datasets = []
+        self._active_index = None
 
     @property
     def base_uri(self):
@@ -806,6 +807,10 @@ class DataSetListModel(object):
         if self._base_uri_model is None:
             return None
         return self._base_uri_model.get_base_uri()
+
+    @property
+    def active_index(self):
+        return self._active_index
 
     @property
     def names(self):
@@ -824,21 +829,41 @@ class DataSetListModel(object):
         if self._base_uri_model.get_base_uri() is not None:
             self.reindex()
 
-    def get_uri(self, index):
-        """Return the URI of the dataset at a specific index in the list.
-
-        :param index: position of dataset in list
+    def get_uri(self):
+        """Return the URI of the dataset at the active index.
         """
-        return self._datasets[index].uri
+        if self.active_index is None:
+            return None
+        return self._datasets[self.active_index].uri
+
+    def set_active_index(self, index):
+        """Set the active_index.
+
+        :raises: IndexError if the index is invalid
+        """
+        if len(self._datasets) == 0:
+            # No datasets in the model.
+            raise(IndexError())
+        if index < 0:
+            # Can't have a negative index.
+            raise(IndexError())
+        if index >= len(self._datasets):
+            raise(IndexError())
+        self._active_index = index
 
     def reindex(self):
         """Index the base URI."""
         self._datasets = []
+        self._active_index = None
         base_uri = self._base_uri_model.get_base_uri()
         if base_uri is None:
             return
         for ds in dtoolcore.iter_datasets_in_base_uri(base_uri):
             self._datasets.append(ds)
+
+        # The initial active index is 0 if there are datasets in the model.
+        if len(self._datasets) > 0:
+            self._active_index = 0
 
     def yield_properties(self, sort_by="name", reverse=False):
         """Return iterable that yields dictionaries with dataset properties."""
