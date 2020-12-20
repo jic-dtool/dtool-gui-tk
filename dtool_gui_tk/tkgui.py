@@ -567,6 +567,8 @@ class NewDataSetFrame(ttk.Frame):
         except Exception as e:
             logger.warning("Dataset creation exception: {}".format(e))
             mb.showwarning("Failed to create dataset", e)
+            self.focus_set()
+            return
         logger.info("Finished dataset creation")
         mb.showinfo(
             "Dataset created",
@@ -584,6 +586,7 @@ class NewDataSetFrame(ttk.Frame):
                 "Failed to create dataset",
                 "Input directory has not been set"
             )
+            self.focus_set()
             return
 
         if self.root.base_uri_model.get_base_uri() is None:
@@ -591,6 +594,7 @@ class NewDataSetFrame(ttk.Frame):
                 "Failed to create dataset",
                 "Local base URI has not been configured. Configure it in the preferences."  # NOQA
             )
+            self.focus_set()
             return
 
         # The number of items is needed for the progress bar.
