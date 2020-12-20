@@ -504,7 +504,7 @@ class MetadataFormFrame(ttk.Frame):
 
 
 class NewDataSetFrame(ttk.Frame):
-    """Preferences window."""
+    """New dataset frame."""
 
     def __init__(self, master, root):
         super().__init__(master)
@@ -635,20 +635,34 @@ class PreferencesWindow(tk.Toplevel):
         self.root = master
         mainframe = ttk.Frame(self)
         mainframe.grid(row=0, column=0, sticky="nwes")
-        label_frame = ttk.LabelFrame(mainframe, text="Local base URI directory")  # NOQA
-        label_frame.grid(row=0, column=0,)
+        self.label_frame = ttk.LabelFrame(mainframe, text="Local base URI")  # NOQA
+        self.label_frame.grid(row=0, column=0,)
         self.local_base_uri_directory = tk.StringVar()
         self.local_base_uri_directory.set(
             self.root.base_uri_model.get_base_uri()
         )
-        label = ttk.Label(label_frame, textvar=self.local_base_uri_directory)
-        button = ttk.Button(
-            label_frame,
+        self.refresh()
+
+    def _setup_base_uri_directory_input_field(self):
+        self.help_lbl = ttk.Label(
+            self.label_frame,
+            text="Directory where datasets will be stored."
+        )
+        self.lbl = ttk.Label(self.label_frame, text="Base URI")
+        self.entry = ttk.Entry(
+            self.label_frame,
+            width=len(self.root.base_uri_model.get_base_uri())
+        )
+        self.entry.insert(0, self.root.base_uri_model.get_base_uri())
+        self.entry.configure(state="readonly")
+        self.button = ttk.Button(
+            self.label_frame,
             text="Select local base URI directory",
             command=self.select_local_base_uri_directory
         )
-        label.grid(row=0, column=0)
-        button.grid(row=1, column=0)
+        self.help_lbl.grid(row=0, column=0, columnspan=2, sticky="ew")
+        self.entry.grid(row=1, column=0, sticky="ew")
+        self.button.grid(row=1, column=1)
 
     def select_local_base_uri_directory(self):
         base_uri_directory = fd.askdirectory(
@@ -662,7 +676,16 @@ class PreferencesWindow(tk.Toplevel):
                 base_uri_directory
             )
         )
+        self.refresh()
         self.root.refresh()
+
+    def refresh(self):
+        logger.info("Refreshing {}".format(self))
+        for widget in self.label_frame.winfo_children():
+            logger.info("Destroying widget: {}".format(widget))
+            widget.destroy()
+
+        self._setup_base_uri_directory_input_field()
 
 
 class NewDataSetProgressBar(ttk.Progressbar):
