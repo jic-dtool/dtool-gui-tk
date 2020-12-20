@@ -631,6 +631,10 @@ class PreferencesWindow(tk.Toplevel):
         super().__init__(master)
         self.title("Preferences")
 
+        # Implement custom behaviour when closing the window.
+        # Needed to set the App.preferences_window to None.
+        self.protocol("WM_DELETE_WINDOW", self.dismiss)
+
         logger.info("Initialising {}".format(self))
         self.root = master
         mainframe = ttk.Frame(self)
@@ -642,6 +646,10 @@ class PreferencesWindow(tk.Toplevel):
             self.root.base_uri_model.get_base_uri()
         )
         self.refresh()
+
+    def dismiss(self):
+        self.root.preferences_window = None
+        self.destroy()
 
     def _setup_base_uri_directory_input_field(self):
         self.help_lbl = ttk.Label(
@@ -712,6 +720,8 @@ class App(tk.Tk):
         super().__init__()
         logger.info("Initialising dtool-gui")
         self.title("dtool")
+
+        self.preferences_window = None
 
         # Make sure that the GUI expands/shrinks when the window is resized.
         self.columnconfigure(0, weight=1)
@@ -867,7 +877,10 @@ class App(tk.Tk):
     def show_perferences_window(self):
         """Show the preferences window."""
         logger.info(self.show_perferences_window.__doc__)
-        PreferencesWindow(self)
+        if self.preferences_window is None:
+            self.preferences_window = PreferencesWindow(self)
+        else:
+            self.preferences_window.focus_set()
 
     def load_dataset(self, dataset_uri):
         """Load dataset and deal with UnsupportedTypeError exceptions."""
