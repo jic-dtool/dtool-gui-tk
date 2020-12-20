@@ -630,12 +630,66 @@ class NewDataSetWindow(tk.Toplevel):
         new_dataset_frame.grid(row=0, column=0, sticky="nwes")
 
 
+class UpdateDataSetFrame(ttk.Frame):
+    """Update dataset frame."""
+
+    def __init__(self, master, root, dataset_uri):
+        super().__init__(master)
+        logger.info("Initialising {}".format(self))
+        self.focus_set()
+        self.master = master
+        self.root = root
+
+        self.dataset_model = DataSetModel()
+        self.dataset_model.load_dataset(dataset_uri)
+
+        self.optional_metadata_frame = OptionalMetadataFrame(self, self.root)
+        self.optional_metadata_frame.grid(row=0, column=0, sticky="nsew")
+
+        self.metadata_form_frame = MetadataFormFrame(self, self.root)
+        self.metadata_form_frame.grid(row=0, column=1, sticky="nsew")
+
+    @property
+    def proto_dataset_model(self):
+        # This is a hack to make it work with OptionalMetadataFrame.
+        return self.dataset_model
+
+    @property
+    def metadata_model(self):
+        return self.dataset_model.metadata_model
+
+    def select_optional_metadata(self, event):
+        widget = event.widget
+        try:
+            index = int(widget.curselection()[0])
+        except IndexError:
+            return
+        name = widget.get(index)
+        logger.info(f"Selected optional metadata: {name}")
+        self.dataset_model.metadata_model.select_optional_item(name)
+        self.refresh()
+        self.metadata_form_frame.entries[name].focus_set()
+
+    def deselect_optional_metadata(self, event):
+        widget = event.widget
+        name = widget._name_to_clear
+        logger.info(f"Deselected optional metadata: {name}")
+        self.dataset_model.metadata_model.deselect_optional_item(name)
+        self.refresh()
+
+    def refresh(self):
+        self.optional_metadata_frame.refresh()
+        self.metadata_form_frame.refresh()
+
+
 class UpdateDataSetWindow(tk.Toplevel):
     """Update dataset window."""
-    def __init__(self, master):
+    def __init__(self, master, dataset_uri):
         super().__init__(master)
-        self.title("Create dataset")
+        self.title("Update metadata")
         logger.info("Initialising {}".format(self))
+        update_dataset_frame = UpdateDataSetFrame(self, master, dataset_uri)
+        update_dataset_frame.grid(row=0, column=0, sticky="nwes")
 
 
 class PreferencesWindow(tk.Toplevel):
@@ -873,10 +927,7 @@ class App(tk.Tk):
     def edit_metadata(self):
         """Open window with form to edit a dataset's metadata."""
         logger.info(self.edit_metadata.__doc__)
-        mb.showinfo(
-            "Work in progress...",
-            "It is not possible to edit an existing dataset's metadata yet."
-        )
+        UpdateDataSetWindow(self, self.dataset_list_model.get_uri())
 
     def _quit_event(self, event):
         self.quit()
