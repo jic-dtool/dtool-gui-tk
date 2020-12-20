@@ -658,7 +658,7 @@ class PreferencesWindow(tk.Toplevel):
     def _setup_base_uri_directory_input_field(self):
         self.help_lbl = ttk.Label(
             self.label_frame,
-            text="Directory where datasets will be stored."
+            text="Directory where datasets are stored."
         )
         self.lbl = ttk.Label(self.label_frame, text="Base URI")
         self.entry = ttk.Entry(
