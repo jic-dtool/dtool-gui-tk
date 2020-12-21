@@ -649,6 +649,9 @@ class UpdateDataSetFrame(ttk.Frame):
         self.metadata_form_frame = MetadataFormFrame(self, self.root)
         self.metadata_form_frame.grid(row=0, column=1, sticky="nsew")
 
+        self.update_btn = ttk.Button(self, text="Update", command=self.update)
+        self.update_btn.grid(row=1, column=0, columnspan=2, sticky="we")
+
     @property
     def proto_dataset_model(self):
         # This is a hack to make it work with OptionalMetadataFrame.
@@ -657,6 +660,10 @@ class UpdateDataSetFrame(ttk.Frame):
     @property
     def metadata_model(self):
         return self.dataset_model.metadata_model
+
+    def update(self):
+        logger.info("Updating metadata for {}".format(self.dataset_model.name))
+        self.dataset_model.update_metadata()
 
     def select_optional_metadata(self, event):
         widget = event.widget
