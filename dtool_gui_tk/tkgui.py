@@ -178,17 +178,18 @@ class DataSetFrame(ttk.Frame):
 
         self.name = ttk.Label(self)  # NOQA
         self.name.grid(row=0, column=0, columnspan=2, sticky="nw")
-        separator = ttk.Separator(self, orient=tk.HORIZONTAL)
 
-        separator.grid(row=1, column=0, columnspan=2, sticky="ew")
+        ttk.Separator(self, orient=tk.HORIZONTAL).grid(
+            row=1, column=0, columnspan=2, sticky="ew", pady=(0, 4)
+        )
 
         self.dataset_metadata_frame = DataSetMetadataFrame(self, root)
         self.dataset_metadata_frame.grid(row=2, column=0, sticky="news")
 
-#       separator.grid(row=3, column=0, columnspan=2, sticky="ew")
-
         self.dataset_item_frame = DataSetItemsFrame(self, root)
-        self.dataset_item_frame.grid(row=3, column=0, sticky="news")
+        self.dataset_item_frame.grid(
+            row=3, column=0, sticky="news", pady=(4, 0)
+        )
 
         self.root = root
         if self.root.base_uri_model.get_base_uri() is not None:
