@@ -643,6 +643,12 @@ class UpdateDataSetFrame(ttk.Frame):
         self.dataset_model = DataSetModel()
         self.dataset_model.load_dataset(dataset_uri)
 
+        # Mark any optional metadata items with data as selected.
+        for optional_item_name in self.metadata_model.optional_item_names:
+            value = self.metadata_model.get_value(optional_item_name)
+            if value is not None:
+                self.metadata_model.select_optional_item(optional_item_name)
+
         self.optional_metadata_frame = OptionalMetadataFrame(self, self.root)
         self.optional_metadata_frame.grid(row=0, column=0, sticky="nsew")
 
