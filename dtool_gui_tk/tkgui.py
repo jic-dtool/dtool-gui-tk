@@ -105,7 +105,7 @@ class DataSetListFrame(ttk.Frame):
             self.update_selected_dataset_event
         )
 
-        # Layout the fame.
+        # Layout the frame.
         self.dataset_list.grid(row=0, column=0, sticky="nswe")
         yscrollbar.grid(row=0, column=1, sticky="ns")
 
@@ -176,12 +176,102 @@ class DataSetFrame(ttk.Frame):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
 
+        self.name = ttk.Label(self)  # NOQA
+        self.name.grid(row=0, column=0, columnspan=2, sticky="nw")
+        separator = ttk.Separator(self, orient=tk.HORIZONTAL)
+
+        separator.grid(row=1, column=0, columnspan=2, sticky="ew")
+
+        self.dataset_metadata_frame = DataSetMetadataFrame(self, root)
+        self.dataset_metadata_frame.grid(row=2, column=0, sticky="news")
+
+#       separator.grid(row=3, column=0, columnspan=2, sticky="ew")
+
+        self.dataset_item_frame = DataSetItemsFrame(self, root)
+        self.dataset_item_frame.grid(row=3, column=0, sticky="news")
+
         self.root = root
         if self.root.base_uri_model.get_base_uri() is not None:
             self.refresh()
 
     def refresh(self):
-        """Refreshing dataset frame."""
+
+        # Display the name.
+        self.name.config(text=self.root.dataset_model.name)
+
+        self.dataset_metadata_frame.refresh()
+        self.dataset_item_frame.refresh()
+
+
+class DataSetItemsFrame(ttk.Frame):
+    """View dataset items."""
+
+    def __init__(self, master, root):
+        super().__init__(master)
+        logger.info("Initialising {}".format(self))
+
+        # Make sure that the GUI expands/shrinks when the window is resized.
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+
+        self.columns = ("relpath",)
+        self.item_list = ttk.Treeview(
+            self,
+            show="headings",
+            height=10,
+            columns=self.columns
+        )
+        self.item_list.heading("relpath", text="Relpath")
+        self.item_list.column("relpath", width=80, anchor="e")
+
+        # Add a scrollbar.
+        yscrollbar = ttk.Scrollbar(
+            self,
+            orient=tk.VERTICAL,
+            command=self.item_list.yview
+        )
+        self.item_list.configure(yscroll=yscrollbar.set)
+
+        # Layout the frame.
+        self.item_list.grid(row=0, column=0, sticky="nswe")
+        yscrollbar.grid(row=0, column=1, sticky="ns")
+
+        self.root = root
+        if self.root.base_uri_model.get_base_uri() is not None:
+            self.refresh()
+
+    def refresh(self):
+        """Refreshing dataset metadata frame."""
+        logger.info("Refreshing {}".format(self))
+        self.item_list.delete(*self.item_list.get_children())
+
+        for props in self.root.dataset_model._dataset.identifiers:
+            values = [props]
+            self.item_list.insert("", "end", values=values)
+            logger.info("Loaded item: {}".format(props))
+
+        # Skip if a dataset is not loaded.
+        if self.root.dataset_model.name is None:
+            return
+
+
+class DataSetMetadataFrame(ttk.Frame):
+    """View dataset metadata."""
+
+    def __init__(self, master, root):
+        super().__init__(master)
+        logger.info("Initialising {}".format(self))
+
+        # Make sure that the GUI expands/shrinks when the window is resized.
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+
+        self.root = root
+        if self.root.base_uri_model.get_base_uri() is not None:
+            self.refresh()
+
+    def refresh(self):
+        """Refreshing dataset metadata frame."""
         logger.info("Refreshing {}".format(self))
         for widget in self.winfo_children():
             logger.info("Destroying widget: {}".format(widget))
@@ -190,12 +280,6 @@ class DataSetFrame(ttk.Frame):
         # Skip if a dataset is not loaded.
         if self.root.dataset_model.name is None:
             return
-
-        # Display the name.
-        name = ttk.Label(self, text=self.root.dataset_model.name)  # NOQA
-        name.grid(row=0, column=0, columnspan=2, sticky="nw")
-        separator = ttk.Separator(self, orient=tk.HORIZONTAL)
-        separator.grid(row=1, column=0, columnspan=2, sticky="ew")
 
         if self.root.dataset_model.metadata_model is None:
             ttk.Label(self, text="Dataset contains unsupported metadata types").grid(row=2, column=0, columnspan=2, sticky="ew")  # NOQA
