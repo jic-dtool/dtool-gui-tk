@@ -679,10 +679,12 @@ class EditMetadataFrame(ttk.Frame):
         self.dataset_model.update_metadata()
         self.root.refresh()
         self.root.dataset_list_frame.update_selected_dataset(active_index)
+        self.root.edit_metadata_window = None
         self.master.destroy()
 
     def cancel(self):
         logger.info("Not updating metadata {}".format(self.dataset_model.name))
+        self.root.edit_metadata_window = None
         self.master.destroy()
 
     def select_optional_metadata(self, event):
@@ -714,13 +716,22 @@ class EditMetadataWindow(tk.Toplevel):
     def __init__(self, master, dataset_uri):
         super().__init__(master)
 
+        self.root = master
+
         # Stop user being able to interact with any other window.
         self.grab_set()
+
+        # Implement custom behaviour when closing the window.
+        # Needed to set the App.edit_metadata_window to None.
+        self.protocol("WM_DELETE_WINDOW", self.dismiss)
 
         self.title("Edit metadata")
         logger.info("Initialising {}".format(self))
         edit_metadata_frame = EditMetadataFrame(self, master, dataset_uri)
         edit_metadata_frame.grid(row=0, column=0, sticky="nwes")
+
+    def dismiss(self):
+        self.root.edit_metadata_window = None
 
 
 class PreferencesWindow(tk.Toplevel):
@@ -821,6 +832,7 @@ class App(tk.Tk):
         self.title("dtool")
 
         self.preferences_window = None
+        self.edit_metadata_window = None
 
         # Make sure that the GUI expands/shrinks when the window is resized.
         self.columnconfigure(0, weight=1)
@@ -958,7 +970,13 @@ class App(tk.Tk):
     def edit_metadata(self):
         """Open window with form to edit a dataset's metadata."""
         logger.info(self.edit_metadata.__doc__)
-        EditMetadataWindow(self, self.dataset_list_model.get_uri())
+        if self.edit_metadata_window is None:
+            self.edit_metadata_window = EditMetadataWindow(
+                self,
+                self.dataset_list_model.get_uri()
+            )
+        else:
+            self.edit_metadata_window.focus_set()
 
     def _quit_event(self, event):
         self.quit()
