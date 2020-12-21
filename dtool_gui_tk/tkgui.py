@@ -102,7 +102,7 @@ class DataSetListFrame(ttk.Frame):
         # Bind event when row is selected.
         self.dataset_list.bind(
             "<<TreeviewSelect>>",
-            self.update_selected_dataset
+            self.update_selected_dataset_event
         )
 
         # Layout the fame.
@@ -134,9 +134,12 @@ class DataSetListFrame(ttk.Frame):
     def sort_by_date(self):
         self._sort("date")
 
-    def update_selected_dataset(self, event):
+    def update_selected_dataset_event(self, event):
         selected = self.dataset_list.selection()[0]
         index = self.dataset_list.index(selected)
+        self.update_selected_dataset(index)
+
+    def update_selected_dataset(self, index):
         self.root.dataset_list_model.set_active_index(index)
         dataset_uri = self.root.dataset_list_model.get_uri()
         self.root.load_dataset(dataset_uri)
