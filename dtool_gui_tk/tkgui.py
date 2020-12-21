@@ -214,7 +214,7 @@ class DataSetItemsFrame(ttk.Frame):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
 
-        self.columns = ("relpath",)
+        self.columns = ("relpath", "size_str")
         self.item_list = ttk.Treeview(
             self,
             show="headings",
@@ -222,7 +222,9 @@ class DataSetItemsFrame(ttk.Frame):
             columns=self.columns
         )
         self.item_list.heading("relpath", text="Relpath")
-        self.item_list.column("relpath", width=80, anchor="e")
+        self.item_list.heading("size_str", text="Size")
+        self.item_list.column("relpath", width=300, anchor="w")
+        self.item_list.column("size_str", width=60, anchor="e")
 
         # Add a scrollbar.
         yscrollbar = ttk.Scrollbar(
@@ -245,10 +247,9 @@ class DataSetItemsFrame(ttk.Frame):
         logger.info("Refreshing {}".format(self))
         self.item_list.delete(*self.item_list.get_children())
 
-        for props in self.root.dataset_model._dataset.identifiers:
-            values = [props]
+        for props in self.root.dataset_model.get_item_props_list():
+            values = [props["relpath"], props["size_str"]]
             self.item_list.insert("", "end", values=values)
-            logger.info("Loaded item: {}".format(props))
 
         # Skip if a dataset is not loaded.
         if self.root.dataset_model.name is None:
