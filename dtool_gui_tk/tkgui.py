@@ -733,6 +733,7 @@ class EditMetadataWindow(tk.Toplevel):
 
     def dismiss(self):
         self.root.edit_metadata_window = None
+        self.destroy()
 
 
 class PreferencesWindow(tk.Toplevel):
