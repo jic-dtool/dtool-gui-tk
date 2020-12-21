@@ -835,6 +835,7 @@ class App(tk.Tk):
 
         self.preferences_window = None
         self.edit_metadata_window = None
+        self.active_dataset_metadata_supported = False
 
         # Make sure that the GUI expands/shrinks when the window is resized.
         self.columnconfigure(0, weight=1)
@@ -973,10 +974,17 @@ class App(tk.Tk):
         """Open window with form to edit a dataset's metadata."""
         logger.info(self.edit_metadata.__doc__)
         if self.edit_metadata_window is None:
-            self.edit_metadata_window = EditMetadataWindow(
-                self,
-                self.dataset_list_model.get_active_uri()
-            )
+            if self.active_dataset_metadata_supported:
+                self.edit_metadata_window = EditMetadataWindow(
+                    self,
+                    self.dataset_list_model.get_active_uri()
+                )
+            else:
+                logger.info("Can't edit metadata (contains unsupported metadata types) {}.".format(self.dataset_list_model.get_active_uri()))  # NOQA
+                mb.showinfo(
+                    "Can't edit dataset",
+                    message="Dataset contains unsupported metadata types. Try using the dtool CLI to edit its metadata."  # NOQA
+                )
         else:
             self.edit_metadata_window.focus_set()
 
@@ -1002,8 +1010,10 @@ class App(tk.Tk):
         """Load dataset and deal with UnsupportedTypeError exceptions."""
         try:
             self.dataset_model.load_dataset(dataset_uri)
+            self.active_dataset_metadata_supported = True
         except UnsupportedTypeError:
             logging.warning("Dataset contains unsupported metadata type")
+            self.active_dataset_metadata_supported = False
 
     def refresh(self):
         """Refreshing all frames."""
