@@ -355,6 +355,7 @@ def test_DataSetListModel(tmp_dir_fixture):  # NOQA
     for i, name in enumerate(dataset_list_model.names):
         dataset_list_model.set_active_index(i)
         assert dataset_list_model.get_active_uri() == dataset_uris[name]
+        assert dataset_list_model.get_active_name() == name
 
     # Test yield_properties.
     props_generator = dataset_list_model.yield_properties()

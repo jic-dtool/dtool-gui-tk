@@ -836,6 +836,13 @@ class DataSetListModel(object):
             return None
         return self._datasets[self.active_index].uri
 
+    def get_active_name(self):
+        """Return the name of the dataset at the active index.
+        """
+        if self.active_index is None:
+            return None
+        return self._datasets[self.active_index].name
+
     def set_active_index(self, index):
         """Set the active_index.
 
