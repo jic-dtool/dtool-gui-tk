@@ -725,7 +725,8 @@ class EditMetadataWindow(tk.Toplevel):
         # Needed to set the App.edit_metadata_window to None.
         self.protocol("WM_DELETE_WINDOW", self.dismiss)
 
-        self.title("Edit metadata")
+        ds_name = self.root.dataset_list_model.get_active_name()
+        self.title("Edit metadata: {}".format(ds_name))
         logger.info("Initialising {}".format(self))
         edit_metadata_frame = EditMetadataFrame(self, master, dataset_uri)
         edit_metadata_frame.grid(row=0, column=0, sticky="nwes")
