@@ -672,7 +672,10 @@ class UpdateDataSetFrame(ttk.Frame):
 
     def update(self):
         logger.info("Updating metadata for {}".format(self.dataset_model.name))
+        active_index = self.root.dataset_list_model.active_index
         self.dataset_model.update_metadata()
+        self.root.refresh()
+        self.root.dataset_list_frame.update_selected_dataset(active_index)
 
     def select_optional_metadata(self, event):
         widget = event.widget
