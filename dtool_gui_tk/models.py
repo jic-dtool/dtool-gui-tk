@@ -11,6 +11,7 @@ from ruamel.yaml import YAML
 
 # This is a hack.
 from dtool_info.inventory import _dataset_info
+from dtool_info.utils import sizeof_fmt
 
 from dtool_gui_tk.metadata import MetadataSchemaItem
 
@@ -574,6 +575,19 @@ class DataSetModel(object):
         self.clear()
         self._dataset = dtoolcore.DataSet.from_uri(uri)
         self._metadata_model = metadata_model_from_dataset(self._dataset)
+
+    def get_item_props_list(self):
+        """Return list of dict of properties for each item in the dataset."""
+        item_props_list = []
+        for identifier in self._dataset.identifiers:
+            props = self._dataset.item_properties(identifier)
+            item_props_list.append({
+                "identifier": identifier,
+                "relpath": props["relpath"],
+                "size_int": props["size_in_bytes"],
+                "size_str": sizeof_fmt(props["size_in_bytes"])
+            })
+        return sorted(item_props_list, key=itemgetter("relpath"))
 
     def update_name(self, name):
         """Update the name of the dataset.

@@ -476,12 +476,21 @@ def test_DataSetModel_basic(tmp_dir_fixture):  # NOQA
         name=dataset_name,
         base_uri=tmp_dir_fixture
     ) as ds_creator:
+
+        # Add some metadata.
         for key in sorted(annotations.keys()):
             value = annotations[key]
             ds_creator.put_annotation(key, value)
             readme_lines.append("{}: {}".format(key, value))
         readme = "\n".join(readme_lines)
         ds_creator.put_readme(readme)
+
+        # Add some items.
+        for animal in ["cat", "tiger"]:
+            handle = animal + ".txt"
+            fpath = ds_creator.prepare_staging_abspath_promise(handle)
+            with open(fpath, "w") as fh:
+                fh.write(animal)
         uri = ds_creator.uri
 
     dataset_model.load_dataset(uri)
@@ -500,6 +509,23 @@ def test_DataSetModel_basic(tmp_dir_fixture):  # NOQA
     assert dataset_model.metadata_model.get_master_schema() == expected_schema
     for key in annotations.keys():
         assert dataset_model.metadata_model.get_value(key) == annotations[key]
+
+    # Test the get_item_props_list method.
+    expected_content = [
+        {
+            'identifier': 'e55aada093b34671ec2f9467fe83f0d3d8c31f30',
+            'relpath': 'cat.txt',
+            'size_int': 3,
+            'size_str': '   3.0B  '
+        },
+        {
+            'identifier': '433635d53dae167009941349491abf7aae9becbd',
+            'relpath': 'tiger.txt',
+            'size_int': 5,
+            'size_str': '   5.0B  '
+        },
+    ]
+    assert dataset_model.get_item_props_list() == expected_content
 
     # Check that one can update the properties on the actual dataset.
     from dtoolcore import DataSet
