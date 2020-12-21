@@ -141,7 +141,7 @@ class DataSetListFrame(ttk.Frame):
 
     def update_selected_dataset(self, index):
         self.root.dataset_list_model.set_active_index(index)
-        dataset_uri = self.root.dataset_list_model.get_uri()
+        dataset_uri = self.root.dataset_list_model.get_active_uri()
         self.root.load_dataset(dataset_uri)
         self.root.dataset_frame.refresh()
 
@@ -158,7 +158,7 @@ class DataSetListFrame(ttk.Frame):
             self.dataset_list.insert("", "end", values=values)
             logger.info("Loaded dataset: {}".format(props["name"]))
 
-        dataset_uri = self.root.dataset_list_model.get_uri()
+        dataset_uri = self.root.dataset_list_model.get_active_uri()
         if dataset_uri is not None:
             self.root.load_dataset(dataset_uri)
         else:
@@ -845,7 +845,7 @@ class App(tk.Tk):
 
         # Configure the models.
         self.dataset_list_model.set_base_uri_model(self.base_uri_model)
-        dataset_uri = self.dataset_list_model.get_uri()
+        dataset_uri = self.dataset_list_model.get_active_uri()
         if dataset_uri is not None:
             self.load_dataset(dataset_uri)
 
@@ -973,7 +973,7 @@ class App(tk.Tk):
         if self.edit_metadata_window is None:
             self.edit_metadata_window = EditMetadataWindow(
                 self,
-                self.dataset_list_model.get_uri()
+                self.dataset_list_model.get_active_uri()
             )
         else:
             self.edit_metadata_window.focus_set()

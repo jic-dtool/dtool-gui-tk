@@ -829,7 +829,7 @@ class DataSetListModel(object):
         if self._base_uri_model.get_base_uri() is not None:
             self.reindex()
 
-    def get_uri(self):
+    def get_active_uri(self):
         """Return the URI of the dataset at the active index.
         """
         if self.active_index is None:
