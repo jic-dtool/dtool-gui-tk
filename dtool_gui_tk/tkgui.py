@@ -658,8 +658,11 @@ class EditMetadataFrame(ttk.Frame):
         self.metadata_form_frame = MetadataFormFrame(self, self.root)
         self.metadata_form_frame.grid(row=0, column=1, sticky="nsew")
 
+        self.cancel_btn = ttk.Button(self, text="Cancel", command=self.cancel)
+        self.cancel_btn.grid(row=1, column=0)
+
         self.update_btn = ttk.Button(self, text="Update", command=self.update)
-        self.update_btn.grid(row=1, column=0, columnspan=2, sticky="we")
+        self.update_btn.grid(row=1, column=1)
 
     @property
     def proto_dataset_model(self):
@@ -676,6 +679,11 @@ class EditMetadataFrame(ttk.Frame):
         self.dataset_model.update_metadata()
         self.root.refresh()
         self.root.dataset_list_frame.update_selected_dataset(active_index)
+        self.master.destroy()
+
+    def cancel(self):
+        logger.info("Not updating metadata {}".format(self.dataset_model.name))
+        self.master.destroy()
 
     def select_optional_metadata(self, event):
         widget = event.widget
@@ -705,6 +713,10 @@ class EditMetadataWindow(tk.Toplevel):
     """Edit metadata window."""
     def __init__(self, master, dataset_uri):
         super().__init__(master)
+
+        # Stop user being able to interact with any other window.
+        self.grab_set()
+
         self.title("Edit metadata")
         logger.info("Initialising {}".format(self))
         edit_metadata_frame = EditMetadataFrame(self, master, dataset_uri)
