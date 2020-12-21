@@ -1010,8 +1010,11 @@ class App(tk.Tk):
         self.dataset_list_frame = DataSetListFrame(self.mainframe, self)
         self.dataset_list_frame.grid(row=0, column=0, sticky="nsew")
 
+        # Add vertical separator between dataset list and dataset views.
+        ttk.Separator(self.mainframe, orient=tk.VERTICAL).grid(row=0, column=1, sticky="ns")  # NOQA
+
         self.dataset_frame = DataSetFrame(self.mainframe, self)
-        self.dataset_frame.grid(row=0, column=1, sticky="new")
+        self.dataset_frame.grid(row=0, column=2, sticky="new")
 
         # Ask the user to configure the local base URI if it has not been configured.  # NOQA
         if self.base_uri_model.get_base_uri() is None:
