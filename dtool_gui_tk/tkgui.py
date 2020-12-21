@@ -633,8 +633,8 @@ class NewDataSetWindow(tk.Toplevel):
         new_dataset_frame.grid(row=0, column=0, sticky="nwes")
 
 
-class UpdateDataSetFrame(ttk.Frame):
-    """Update dataset frame."""
+class EditMetadataFrame(ttk.Frame):
+    """Edit metadata frame."""
 
     def __init__(self, master, root, dataset_uri):
         super().__init__(master)
@@ -701,14 +701,14 @@ class UpdateDataSetFrame(ttk.Frame):
         self.metadata_form_frame.refresh()
 
 
-class UpdateDataSetWindow(tk.Toplevel):
-    """Update dataset window."""
+class EditMetadataWindow(tk.Toplevel):
+    """Edit metadata window."""
     def __init__(self, master, dataset_uri):
         super().__init__(master)
-        self.title("Update metadata")
+        self.title("Edit metadata")
         logger.info("Initialising {}".format(self))
-        update_dataset_frame = UpdateDataSetFrame(self, master, dataset_uri)
-        update_dataset_frame.grid(row=0, column=0, sticky="nwes")
+        edit_metadata_frame = EditMetadataFrame(self, master, dataset_uri)
+        edit_metadata_frame.grid(row=0, column=0, sticky="nwes")
 
 
 class PreferencesWindow(tk.Toplevel):
@@ -946,7 +946,7 @@ class App(tk.Tk):
     def edit_metadata(self):
         """Open window with form to edit a dataset's metadata."""
         logger.info(self.edit_metadata.__doc__)
-        UpdateDataSetWindow(self, self.dataset_list_model.get_uri())
+        EditMetadataWindow(self, self.dataset_list_model.get_uri())
 
     def _quit_event(self, event):
         self.quit()
