@@ -65,8 +65,8 @@ class DataSetListFrame(ttk.Frame):
         super().__init__(master)
         logger.info("Initialising {}".format(self))
 
-        self.sort_key = "size_int"
-        self.reverse_sort_order = False
+        self._sort_key = None
+        self._reverse_sort_order = False
 
         # Make sure that the GUI expands/shrinks when the window is resized.
         self.columnconfigure(0, weight=1)
@@ -111,13 +111,14 @@ class DataSetListFrame(ttk.Frame):
 
         self.refresh()
 
-    def _sort(self, feature):
-        if self.sort_key == feature:
-            self.reverse_sort_order = not self.reverse_sort_order
+    def _sort(self, sort_key="name"):
+        if self._sort_key == sort_key:
+            self._reverse_sort_order = not self._reverse_sort_order
         else:
-            self.sort_key = feature
-            self.reverse_sort_order = False
-        self.refresh()
+            self._sort_key = sort_key
+            self._reverse_sort_order = False
+        self.root.dataset_list_model.sort(self._sort_key, self._reverse_sort_order)  # NOQA
+        self.refresh(reindex=False)
 
     def sort_by_name(self):
         self._sort("name")
@@ -145,18 +146,16 @@ class DataSetListFrame(ttk.Frame):
         self.root.load_dataset(dataset_uri)
         self.root.dataset_frame.refresh()
 
-    def refresh(self):
+    def refresh(self, reindex=True):
         """Refresh list dataset frame."""
         logger.info("Refreshing {}".format(self))
         self.dataset_list.delete(*self.dataset_list.get_children())
-        self.root.dataset_list_model.reindex()
-        for props in self.root.dataset_list_model.yield_properties(
-            sort_by=self.sort_key,
-            reverse=self.reverse_sort_order
-        ):
+        if reindex:
+            self.root.dataset_list_model.reindex()
+        for props in self.root.dataset_list_model.yield_properties():
             values = [props[c] for c in self.columns]
             self.dataset_list.insert("", "end", values=values)
-            logger.info("Loaded dataset: {}".format(props["name"]))
+            logger.info("Loaded dataset: {}".format(props))
 
         dataset_uri = self.root.dataset_list_model.get_active_uri()
         if dataset_uri is not None:

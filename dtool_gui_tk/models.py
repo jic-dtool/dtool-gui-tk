@@ -891,10 +891,11 @@ class DataSetListModel(object):
 
     def sort(self, key="name", reverse=False):
         """Sort the datasets by items properties."""
+        logger.info("Sorting using key={}, reverse={}".format(key, reverse))
         assert key in ("name", "size_int", "num_items", "creator", "date")
         sort_values = [p[key] for p in self._datasets_info]
         zipped_lists = zip(sort_values, self._datasets, self._datasets_info)
-        sorted_pairs = sorted(zipped_lists, reverse=reverse)
+        sorted_pairs = sorted(zipped_lists, key=itemgetter(0), reverse=reverse)
         tuples = zip(*sorted_pairs)
         _, self._datasets, self._datasets_info = [list(t) for t in tuples]
 
