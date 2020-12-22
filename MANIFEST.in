@@ -1,2 +1,4 @@
 include README.rst
 include LICENSE.rst
+include main-window.png
+include new-dataset-window.png
