@@ -810,6 +810,7 @@ class DataSetListModel(object):
     def __init__(self):
         self._base_uri_model = None
         self._datasets = []
+        self._datasets_info = []
         self._active_index = None
 
     @property
@@ -875,26 +876,29 @@ class DataSetListModel(object):
     def reindex(self):
         """Index the base URI."""
         self._datasets = []
+        self._datasets_info = []
         self._active_index = None
         base_uri = self._base_uri_model.get_base_uri()
         if base_uri is None:
             return
         for ds in dtoolcore.iter_datasets_in_base_uri(base_uri):
             self._datasets.append(ds)
+            self._datasets_info.append(_dataset_info(ds))
 
         # The initial active index is 0 if there are datasets in the model.
         if len(self._datasets) > 0:
             self._active_index = 0
 
-    def yield_properties(self, sort_by="name", reverse=False):
-        """Return iterable that yields dictionaries with dataset properties."""
-        # The use of "_dataset_info"  is a hack.
-        _dataset_info_list = [_dataset_info(ds) for ds in self._datasets]
+    def sort(self, key="name", reverse=False):
+        """Sort the datasets by items properties."""
+        assert key in ("name", "size_int", "num_items", "creator", "date")
+        sort_values = [p[key] for p in self._datasets_info]
+        zipped_lists = zip(sort_values, self._datasets, self._datasets_info)
+        sorted_pairs = sorted(zipped_lists, reverse=reverse)
+        tuples = zip(*sorted_pairs)
+        _, self._datasets, self._datasets_info = [list(t) for t in tuples]
 
-        assert sort_by in ("name", "size_int", "num_items", "creator", "date")
-        for info in sorted(
-            _dataset_info_list,
-            key=itemgetter(sort_by),
-            reverse=reverse
-        ):
+    def yield_properties(self):
+        """Return iterable that yields dictionaries with dataset properties."""
+        for info in self._datasets_info:
             yield info

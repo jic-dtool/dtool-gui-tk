@@ -371,7 +371,8 @@ def test_DataSetListModel(tmp_dir_fixture):  # NOQA
     assert first["creator"] == "not"
 
     # Test yield_properties with sorting.
-    props_generator = dataset_list_model.yield_properties(sort_by="creator")
+    dataset_list_model.sort(key="creator")
+    props_generator = dataset_list_model.yield_properties()
     try:
         from collections.abc import Iterable
     except ImportError:
@@ -384,7 +385,8 @@ def test_DataSetListModel(tmp_dir_fixture):  # NOQA
     assert first["creator"] == "in"
 
     # Test yield_properties.
-    props_generator = dataset_list_model.yield_properties(reverse=True)
+    dataset_list_model.sort(reverse=True)
+    props_generator = dataset_list_model.yield_properties()
     try:
         from collections.abc import Iterable
     except ImportError:
