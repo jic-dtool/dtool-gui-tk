@@ -173,14 +173,10 @@ class DataSetFrame(ttk.Frame):
 
         # Make sure that the GUI expands/shrinks when the window is resized.
         self.columnconfigure(0, weight=1)
-        self.rowconfigure(0, weight=1)
+        self.rowconfigure(3, weight=1)
 
-        self.name = ttk.Label(self)  # NOQA
-        self.name.grid(row=0, column=0, columnspan=2, sticky="nw")
-
-        ttk.Separator(self, orient=tk.HORIZONTAL).grid(
-            row=1, column=0, columnspan=2, sticky="ew", pady=(0, 4)
-        )
+        self.dataset_title_frame = DataSetTitleFrame(self, root)
+        self.dataset_title_frame.grid(row=0, column=0, sticky="ew")
 
         self.dataset_metadata_frame = DataSetMetadataFrame(self, root)
         self.dataset_metadata_frame.grid(row=2, column=0, sticky="news")
@@ -196,11 +192,33 @@ class DataSetFrame(ttk.Frame):
 
     def refresh(self):
 
-        # Display the name.
-        self.name.config(text=self.root.dataset_model.name)
-
+        self.dataset_title_frame.refresh()
         self.dataset_metadata_frame.refresh()
         self.dataset_item_frame.refresh()
+
+
+class DataSetTitleFrame(ttk.Frame):
+    """View dataset title."""
+
+    def __init__(self, master, root):
+        super().__init__(master)
+        logger.info("Initialising {}".format(self))
+
+        self.root = root
+
+        # Make sure that the GUI expands/shrinks when the window is resized.
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+
+        self.name = ttk.Label(self)  # NOQA
+        self.name.grid(row=0, column=0, sticky="ew")
+
+        ttk.Separator(self, orient=tk.HORIZONTAL).grid(
+            row=1, column=0, sticky="ew", pady=(0, 4)
+        )
+
+    def refresh(self):
+        self.name.config(text=self.root.dataset_model.name)
 
 
 class DataSetItemsFrame(ttk.Frame):
@@ -218,7 +236,7 @@ class DataSetItemsFrame(ttk.Frame):
         self.item_list = ttk.Treeview(
             self,
             show="headings",
-            height=10,
+            height=5,
             columns=self.columns
         )
         self.item_list.heading("relpath", text="Relpath")
@@ -264,8 +282,8 @@ class DataSetMetadataFrame(ttk.Frame):
         logger.info("Initialising {}".format(self))
 
         # Make sure that the GUI expands/shrinks when the window is resized.
-        self.columnconfigure(0, weight=1)
-        self.rowconfigure(0, weight=1)
+        self.columnconfigure((0, 1), weight=1)
+#       self.rowconfigure(0, weight=1)
 
         self.root = root
         if self.root.base_uri_model.get_base_uri() is not None:
@@ -299,11 +317,11 @@ class DataSetMetadataFrame(ttk.Frame):
                     continue
                 value_as_str = str(value)
                 row = i + 2
-                ttk.Label(self, text=name).grid(row=row, column=0, sticky="e")  # NOQA
+                ttk.Label(self, text=name).grid(row=row, column=0, sticky="ew")  # NOQA
                 entry = ttk.Entry(self, width=50)
                 entry.insert(0, value_as_str)
                 entry.configure(state="readonly")
-                entry.grid(row=row, column=1, sticky="w")  # NOQA
+                entry.grid(row=row, column=1, sticky="ew")  # NOQA
 
 
 class NewDataSetConfigFrame(ttk.Frame):
@@ -1005,6 +1023,7 @@ class App(tk.Tk):
 
         # Make sure that the GUI expands/shrinks when the window is resized.
         self.mainframe.columnconfigure(0, weight=1)
+        self.mainframe.columnconfigure(2, weight=1)
         self.mainframe.rowconfigure(0, weight=1)
 
         self.dataset_list_frame = DataSetListFrame(self.mainframe, self)
@@ -1014,7 +1033,7 @@ class App(tk.Tk):
         ttk.Separator(self.mainframe, orient=tk.VERTICAL).grid(row=0, column=1, sticky="ns")  # NOQA
 
         self.dataset_frame = DataSetFrame(self.mainframe, self)
-        self.dataset_frame.grid(row=0, column=2, sticky="new")
+        self.dataset_frame.grid(row=0, column=2, sticky="nsew")
 
         # Ask the user to configure the local base URI if it has not been configured.  # NOQA
         if self.base_uri_model.get_base_uri() is None:
