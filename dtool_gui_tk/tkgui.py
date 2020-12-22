@@ -332,8 +332,13 @@ class NewDataSetConfigFrame(ttk.Frame):
         logger.info("Initialising {}".format(self))
         self.master = master
         self.root = root
+
+        # Make sure that the GUI expands/shrinks when the window is resized.
+        self.columnconfigure(0, weight=1)
+
         self.label_frame = ttk.LabelFrame(self, text="New dataset configuration")  # NOQA
-        self.label_frame.grid(row=0, column=0, sticky="nsew")
+        self.label_frame.grid(row=0, column=0, sticky="ew")
+        self.label_frame.columnconfigure(1, weight=1)
         self.refresh()
 
     def _validate_name_callback(self, name):
@@ -426,8 +431,8 @@ class NewDataSetConfigFrame(ttk.Frame):
         index = schema_selection.index("basic")
         self.metadata_schema_combobox.current(index)
 
-        lbl.grid(row=row, column=0)
-        self.metadata_schema_combobox.grid(row=row, column=1)
+        lbl.grid(row=row, column=0, sticky="e")
+        self.metadata_schema_combobox.grid(row=row, column=1, sticky="ew")
 
     def _select_metadata_schema(self, event):
         widget = event.widget
@@ -457,10 +462,17 @@ class OptionalMetadataFrame(ttk.Frame):
     def __init__(self, master, root):
         super().__init__(master)
         logger.info("Initialising {}".format(self))
+
+        # Make sure that the GUI expands/shrinks when the window is resized.
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+
         self.master = master
         self.root = root
         self.label_frame = ttk.LabelFrame(self, text="Optional metadata")  # NOQA
-        self.label_frame.grid(row=0, column=0)
+        self.label_frame.grid(row=0, column=0, sticky="nwse")
+        self.label_frame.columnconfigure(0, weight=1)
+        self.label_frame.rowconfigure(0, weight=1)
 
         self.optional_metadata_listbox = tk.Listbox(self.label_frame)
         self.optional_metadata_listbox.bind(
@@ -493,11 +505,19 @@ class MetadataFormFrame(ttk.Frame):
     def __init__(self, master, root):
         super().__init__(master)
         logger.info("Initialising {}".format(self))
+
+        # Make sure that the GUI expands/shrinks when the window is resized.
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+
         self.master = master
         self.root = root
         self.entries = {}
+
         self.label_frame = ttk.LabelFrame(self, text="Metadata form")  # NOQA
         self.label_frame.grid(row=0, column=0, sticky="nsew")
+        self.label_frame.columnconfigure(1, weight=1)
+
         self.refresh()
 
     @property
@@ -534,7 +554,7 @@ class MetadataFormFrame(ttk.Frame):
         e.name = name
         e.bind("<<ComboboxSelected>>", self.value_update_event_focus_next)
         e.bind("<Return>", self.value_update_event_focus_next)
-        e.grid(row=row, column=1, sticky="ew")
+        e.grid(row=row, column=1, sticky="e")
         self.entries[name] = e
 
     def setup_entry_input_field(self, row, name, value):
@@ -555,7 +575,7 @@ class MetadataFormFrame(ttk.Frame):
         _set_combobox_default_selection(e, values, value)
         e.name = name
         e.bind("<<ComboboxSelected>>", self.value_update_event_focus_next)
-        e.grid(row=row, column=1, sticky="ew")
+        e.grid(row=row, column=1, sticky="new")
         self.entries[name] = e
 
     def setup_input_field(self, row, name):
@@ -585,7 +605,7 @@ class MetadataFormFrame(ttk.Frame):
             btn = ttk.Button(self.label_frame, text="Remove")
             btn._name_to_clear = name
             btn.bind("<Button-1>", self.master.deselect_optional_metadata)
-            btn.grid(row=row, column=2)
+            btn.grid(row=row, column=2, sticky="w")
 
         # Highlight input field if the value is invalid.
         background = "white"
@@ -594,7 +614,7 @@ class MetadataFormFrame(ttk.Frame):
             for issue in self.metadata_model.issues(name):
                 row = row + 1
                 issue_lbl = ttk.Label(self.label_frame, text=issue)
-                issue_lbl.grid(row=row, column=1, columnspan=2, sticky="w")
+                issue_lbl.grid(row=row, column=1, columnspan=2, sticky="nw")
         self.entries[name].config({"background": background})
 
         return row + 1
@@ -621,6 +641,11 @@ class NewDataSetFrame(ttk.Frame):
         self.master = master
         self.root = root
 
+        # Make sure that the GUI expands/shrinks when the window is resized.
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=1)
+        self.rowconfigure(1, weight=1)
+
         self.metadata_schema_list_model = MetadataSchemaListModel()
         self.metadata_schema_list_model.put_metadata_schema_directory(METADATA_SCHEMAS_DIR)  # NOQA
         assert "basic" in self.metadata_schema_list_model.metadata_model_names
@@ -631,7 +656,7 @@ class NewDataSetFrame(ttk.Frame):
         self.proto_dataset_model.set_metadata_model(default_metadata_model)
 
         self.new_dataset_config_frame = NewDataSetConfigFrame(self, self.root)
-        self.new_dataset_config_frame.grid(row=0, column=0, columnspan=2)
+        self.new_dataset_config_frame.grid(row=0, column=0, columnspan=2, sticky="ew")  # NOQA
 
         self.optional_metadata_frame = OptionalMetadataFrame(self, self.root)
         self.optional_metadata_frame.grid(row=1, column=0, sticky="nsew")
@@ -732,6 +757,11 @@ class NewDataSetWindow(tk.Toplevel):
         super().__init__(master)
         self.title("Create dataset")
         logger.info("Initialising {}".format(self))
+
+        # Make sure that the GUI expands/shrinks when the window is resized.
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+
         new_dataset_frame = NewDataSetFrame(self, master)
         new_dataset_frame.grid(row=0, column=0, sticky="nwes")
 
