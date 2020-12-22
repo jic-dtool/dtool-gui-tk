@@ -14,6 +14,8 @@ import tkinter.ttk as ttk
 import tkinter.filedialog as fd
 import tkinter.messagebox as mb
 
+from idlelib.tooltip import Hovertip
+
 from dtool_gui_tk.models import (
     LocalBaseURIModel,
     DataSetListModel,
@@ -359,6 +361,7 @@ class NewDataSetConfigFrame(ttk.Frame):
 
         vcmd = (self.master.register(self._validate_name_callback), "%P")
         lbl = ttk.Label(self.label_frame, text="Dataset Name")
+        Hovertip(lbl, "Maximum 80 characters. Allowed characters: 0-9 a-z A-Z - _ .")  # NOQA
         entry = ttk.Entry(
             self.label_frame,
             validate="key",
@@ -391,6 +394,7 @@ class NewDataSetConfigFrame(ttk.Frame):
 
     def _setup_input_directory_field(self, row):
         lbl = ttk.Label(self.label_frame, text="Input data directory")
+        Hovertip(lbl, "Directory with data that should be included in the dataset.")  # NOQA
         logger.info("Current input directory: {}".format(
             self.master.proto_dataset_model.input_directory
         ))
