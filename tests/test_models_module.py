@@ -626,6 +626,38 @@ def test_DataSetModel_update_metadata_works_on_annotations_and_readme(tmp_dir_fi
     expected_annotation_keys = ["_metadata_schema", "age", "project"]
     assert dataset.list_annotation_names() == expected_annotation_keys  # NOQA
 
+
+def test_DataSetModel_tags(tmp_dir_fixture):  # NOQA
+
+    # Create a basic dataset.
+    from dtoolcore import DataSetCreator, DataSet
+    with DataSetCreator("my-dataset", tmp_dir_fixture) as ds_creator:
+        ds_creator.put_annotation("project", "test")
+
+    # Create a dataset model from the dataset
+    from dtool_gui_tk.models import DataSetModel
+    dataset_model = DataSetModel()
+
+    assert dataset_model.list_tags() == []
+
+    dataset_model.load_dataset(ds_creator.uri)
+    assert dataset_model.list_tags() == []
+
+    dataset_model.put_tag("testtag")
+    assert dataset_model.list_tags() == ["testtag"]
+
+    # Check idempotency
+    dataset_model.put_tag("testtag")
+    assert dataset_model.list_tags() == ["testtag"]
+
+    dataset_model.delete_tag("testtag")
+    assert dataset_model.list_tags() == []
+
+    dataset_model.delete_tag("anothertag")
+    assert dataset_model.list_tags() == []
+
+
+
 def test_json_schema_from_dataset_only_readme(tmp_dir_fixture):  # NOQA
     from dtoolcore import DataSet, DataSetCreator
     from dtool_gui_tk.models import metadata_model_from_dataset, MetadataModel

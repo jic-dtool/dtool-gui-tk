@@ -561,6 +561,30 @@ class DataSetModel(object):
             return True
         return False
 
+    def list_tags(self):
+        """Return the underlying dataset's tags.
+
+        :returns: list
+        """
+        if self._dataset is None:
+            return []
+
+        return self._dataset.list_tags()
+
+    def put_tag(self, tag):
+        """Add tag to underlying dataset.
+        
+        :param tag: new tag
+        """
+        self._dataset.put_tag(tag)
+
+    def delete_tag(self, tag):
+        """Delete tag from underlying dataset.
+
+        :param tag: tag
+        """
+        self._dataset.delete_tag(tag)
+
     def clear(self):
         """Clear the model of existing data."""
         self._dataset = None

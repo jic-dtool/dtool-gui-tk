@@ -1038,6 +1038,14 @@ class App(tk.Tk):
             event_cmd=self._edit_metadata_event
         )
 
+        self._add_menu_command(
+            menu=menu_edit,
+            label="Edit tags...",
+            accelerator_key="T",
+            cmd=self.edit_tags,
+            event_cmd=self._edit_tags_event
+        )
+
         if self.platform != "aqua":
             self._add_menu_command(
                 menu=menu_edit,
@@ -1128,6 +1136,13 @@ class App(tk.Tk):
                 )
         else:
             self.edit_metadata_window.focus_set()
+
+    def _edit_tags_event(self, tags):
+        self.edit_tags()
+
+    def edit_tags(self):
+        """Open window with form to edit a dataset's tags."""
+        logger.info(self.edit_tags.__doc__)
 
     def _quit_event(self, event):
         self.quit()
