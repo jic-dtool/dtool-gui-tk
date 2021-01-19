@@ -1,0 +1,81 @@
+TODO
+====
+
+Next
+----
+
+- Update change log
+- Make release
+- Add features to issue tracker
+
+
+
+Some day
+--------
+
+- Start working on view/controller module
+- Brainstorm Controller API
+- Work out how MetadataModel should deal with key/value additions that lack schema
+
+
+Done for 0.2.0
+--------------
+
+- DONE: Include Treelist of items and sizes in DataSetFrame
+- DONE: Add exception handling to UpdateDataSetFrame for datasets with unsupported metadata types
+- DONE: Add name field to UpdateDataSetFrame
+- DONE: Add hook to refresh main App when update button is pressed
+- DONE: Add update button to UpdateDataSetFrame
+- DONE: Make "New dataset" window prettier on Mac (use additional main
+        ttk.Frame to hold all content)
+
+
+Done
+----
+- DONE: Display warning if dataset is created without the "local base URI
+        directory" being set
+- DONE: Add pop-up dialogue when application starts if the "local base URI
+        directory" is not set
+- DONE: Fix defect in "New dataset" window on Mac
+- DONE: Update readme with usage instructions
+- DONE: Change menu item name from "New file" to "New dataset"
+- DONE: Improve error handling if dataset folder exists when creating a new dataset
+- DONE: Fix usability bug when selecting the input directory
+- DONE: Add spinner when dataset is being created
+- DONE: Set dataset creation off on thread
+- DONE: Fix flake8 issues in dtool_gui/tkgui.py
+- DONE: Create NewDataSetWindow
+- DONE: Standardise string formatting dtool_gui/tkgui.py
+- DONE: Make name more prominent in DataSetFrame
+- DONE: Work out how to make make ttk.Frames and content be responsive to changes in window size
+- DONE: Make ListDataSetFrame prettier; use Treelist; include size and num items
+- DONE: Work out why Mac does not refresh DataSetFrame properly
+- DONE: Work out why DataSetFrame is not updating when a new local base URI is selected
+- DONE: Review metadata module
+- DONE: Convert into a python package
+- DONE: Add tests and logic to store metadata schema as an annotation on the dataset
+- DONE: Add tests and logic to make DataSetModel.update_metadata update readme
+        as well as annotations
+- DONE: Add more tests and logic to metadata_model_from_dataset to make it raise
+        appropriate errors if readme and annotations conflict
+- DONE: Create spec for DataSetModel
+- DONE: Write spike GUI that makes use of MetadataSchemaListModel
+- DONE: Create spec for MetadataSchemaListModel
+- DONE: Create spec for DataSetListModel
+- DONE: Add iter_datasets_in_base_uri to dtoolcore
+- DONE: Fix broken UX (e.g. metadata validation) in dtool-gui-MetadataModel.py
+- DONE: Move string_to_typed into MetadataModel; e.g. MetadataModel.set_value_from_str method
+- DONE: Implement code to fix failing ProtoDataSetModel tests
+- DONE: Create spec for ProtoDataSetModel class
+- DONE: Refactor dtool-gui-MetadataModel script with the aim of creating a Controller API
+- DONE: Prototype GUI using MetadataModel
+- DONE: Work out where/when the forcing of typing will take place
+- DONE: Work out how tkinter.Entry and tkiner.Combobox will update MetadataModel
+- DONE: Add API for storing issues in MetadataModel
+- DONE: Add optional_item_names property to MetadataModel
+- DONE: Add selected_optional_item_names property
+- DONE: Add select_optional_item method to MetadataModel
+- DONE: Add deselect_optional_item method to Metadata
+- DONE: Work out how MetadataModel should act when schema validation fails
+- DONE: Continue work on MetadataModel
+- DONE: Try out MVC pattern with base URI
