@@ -27,6 +27,9 @@ Removed
 Fixed
 ^^^^^
 
+- Fixed defect where it was impossible to open the Preferences dialogue if a
+  local base URI had not already been configured
+
 
 Security
 ^^^^^^^^

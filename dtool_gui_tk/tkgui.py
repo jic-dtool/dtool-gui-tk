@@ -906,19 +906,23 @@ class PreferencesWindow(tk.Toplevel):
             text="Directory where datasets are stored."
         )
         self.lbl = ttk.Label(self.label_frame, text="Base URI")
-        self.entry = ttk.Entry(
-            self.label_frame,
-            width=len(self.root.base_uri_model.get_base_uri())
-        )
-        self.entry.insert(0, self.root.base_uri_model.get_base_uri())
-        self.entry.configure(state="readonly")
+
+        # Show the current base URI if set.
+        if self.root.base_uri_model.get_base_uri() is not None:
+            self.entry = ttk.Entry(
+                self.label_frame,
+                width=len(self.root.base_uri_model.get_base_uri())
+            )
+            self.entry.insert(0, self.root.base_uri_model.get_base_uri())
+            self.entry.configure(state="readonly")
+            self.entry.grid(row=1, column=0, sticky="ew")
+
         self.button = ttk.Button(
             self.label_frame,
             text="Select local base URI directory",
             command=self.select_local_base_uri_directory
         )
         self.help_lbl.grid(row=0, column=0, columnspan=2, sticky="ew")
-        self.entry.grid(row=1, column=0, sticky="ew")
         self.button.grid(row=1, column=1)
 
     def select_local_base_uri_directory(self):
