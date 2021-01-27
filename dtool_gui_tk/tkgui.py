@@ -285,7 +285,6 @@ class DataSetMetadataFrame(ttk.Frame):
 
         # Make sure that the GUI expands/shrinks when the window is resized.
         self.columnconfigure((0, 1), weight=1)
-#       self.rowconfigure(0, weight=1)
 
         self.root = root
         if self.root.base_uri_model.get_base_uri() is not None:
