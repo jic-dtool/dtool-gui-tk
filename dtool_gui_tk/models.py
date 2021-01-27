@@ -573,7 +573,7 @@ class DataSetModel(object):
 
     def put_tag(self, tag):
         """Add tag to underlying dataset.
-        
+
         :param tag: new tag
         """
         self._dataset.put_tag(tag)

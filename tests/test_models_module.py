@@ -630,7 +630,7 @@ def test_DataSetModel_update_metadata_works_on_annotations_and_readme(tmp_dir_fi
 def test_DataSetModel_tags(tmp_dir_fixture):  # NOQA
 
     # Create a basic dataset.
-    from dtoolcore import DataSetCreator, DataSet
+    from dtoolcore import DataSetCreator
     with DataSetCreator("my-dataset", tmp_dir_fixture) as ds_creator:
         ds_creator.put_annotation("project", "test")
 
