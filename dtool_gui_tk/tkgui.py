@@ -847,6 +847,20 @@ class EditMetadataFrame(ttk.Frame):
         self.metadata_form_frame.refresh()
 
 
+class EditTagsFrame(ttk.Frame):
+    """Edit tags frame."""
+
+    def __init__(self, master, root, dataset_uri):
+        super().__init__(master)
+        logger.info("Initialising {}".format(self))
+        self.focus_set()
+        self.master = master
+        self.root = root
+
+        self.dataset_model = DataSetModel()
+        self.dataset_model.load_dataset(dataset_uri)
+
+
 class EditMetadataWindow(tk.Toplevel):
     """Edit metadata window."""
     def __init__(self, master, dataset_uri):
@@ -869,6 +883,31 @@ class EditMetadataWindow(tk.Toplevel):
 
     def dismiss(self):
         self.root.edit_metadata_window = None
+        self.destroy()
+
+
+class EditTagsWindow(tk.Toplevel):
+    """Edit tags window."""
+    def __init__(self, master, dataset_uri):
+        super().__init__(master)
+
+        self.root = master
+
+        # Stop user being able to interact with any other window.
+        self.grab_set()
+
+        # Implement custom behaviour when closing the window.
+        # Needed to set the App.edit_metadata_window to None.
+        self.protocol("WM_DELETE_WINDOW", self.dismiss)
+
+        ds_name = self.root.dataset_list_model.get_active_name()
+        self.title("Edit tags: {}".format(ds_name))
+        logger.info("Initialising {}".format(self))
+        edit_tags_frame = EditTagsFrame(self, master, dataset_uri)
+        edit_tags_frame.grid(row=0, column=0, sticky="nwes")
+
+    def dismiss(self):
+        self.root.edit_tags_window = None
         self.destroy()
 
 
@@ -976,6 +1015,7 @@ class App(tk.Tk):
         self.preferences_window = None
         self.edit_metadata_window = None
         self.active_dataset_metadata_supported = False
+        self.edit_tags_window = None
 
         # Make sure that the GUI expands/shrinks when the window is resized.
         self.columnconfigure(0, weight=1)
@@ -1146,6 +1186,13 @@ class App(tk.Tk):
     def edit_tags(self):
         """Open window with form to edit a dataset's tags."""
         logger.info(self.edit_tags.__doc__)
+        if self.edit_tags_window is None:
+            self.edit_tags_window = EditTagsWindow(
+                self,
+                self.dataset_list_model.get_active_uri()
+            )
+        else:
+            self.edit_tags_window.focus_set()
 
     def _quit_event(self, event):
         self.quit()
