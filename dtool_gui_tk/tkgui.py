@@ -267,13 +267,13 @@ class DataSetItemsFrame(ttk.Frame):
         logger.info("Refreshing {}".format(self))
         self.item_list.delete(*self.item_list.get_children())
 
-        for props in self.root.dataset_model.get_item_props_list():
-            values = [props["relpath"], props["size_str"]]
-            self.item_list.insert("", "end", values=values)
-
         # Skip if a dataset is not loaded.
         if self.root.dataset_model.name is None:
             return
+
+        for props in self.root.dataset_model.get_item_props_list():
+            values = [props["relpath"], props["size_str"]]
+            self.item_list.insert("", "end", values=values)
 
 
 class DataSetMetadataFrame(ttk.Frame):

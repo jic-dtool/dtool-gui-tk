@@ -27,6 +27,8 @@ Removed
 Fixed
 ^^^^^
 
+- Fixed defect where app crashed if there were no datasets present in the local
+  base URI
 - Fixed defect where it was impossible to open the Preferences dialogue if a
   local base URI had not already been configured
 
