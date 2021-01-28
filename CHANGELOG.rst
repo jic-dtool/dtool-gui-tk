@@ -11,6 +11,8 @@ This change log uses principles from `keep a changelog <http://keepachangelog.co
 Added
 ^^^^^
 
+- Added ability to view, add and delete dataset tags
+
 
 Changed
 ^^^^^^^
