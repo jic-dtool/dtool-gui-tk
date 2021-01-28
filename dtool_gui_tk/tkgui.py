@@ -898,8 +898,15 @@ class EditTagsFrame(ttk.Frame):
         self.dataset_model.load_dataset(dataset_uri)
 
         # Entry and button to add a tag.
+        vcmd = (self.master.register(self._validate_tag_callback), "%P")
         self.tag_var = tk.StringVar()
-        self.tag_entry = ttk.Entry(self, width=10, textvariable=self.tag_var)
+        self.tag_entry = ttk.Entry(
+            self,
+            width=10,
+            textvariable=self.tag_var,
+            validate="key",
+            validatecommand=vcmd
+        )
         self.add_btn = ttk.Button(self, text="Add", command=self.put_tag)
 
         # Treeview displaying the dataset's tags.
@@ -915,6 +922,11 @@ class EditTagsFrame(ttk.Frame):
         self.delete_btn.grid(row=2, column=0, columnspan=2, sticky="nsew")
 
         self.refresh()
+
+    def _validate_tag_callback(self, name):
+        if (name is not None) and (len(name) > 0):
+            return dtoolcore.utils.name_is_valid(name)
+        return True
 
     def put_tag(self):
         logger.info("Putting tag: {}".format(self.tag_var.get()))
