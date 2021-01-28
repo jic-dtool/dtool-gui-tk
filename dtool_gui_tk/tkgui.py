@@ -847,6 +847,43 @@ class EditMetadataFrame(ttk.Frame):
         self.metadata_form_frame.refresh()
 
 
+class TagListFrame(ttk.Frame):
+
+    def __init__(self, master):
+        super().__init__(master)
+        logger.info("Initialising {}".format(self))
+        self.master = master
+
+        self.columns = ("tag",)
+        self.tag_list = ttk.Treeview(
+            self,
+            show="headings",
+            height=10,
+            selectmode="browse",
+            columns=self.columns
+        )
+        self.tag_list.heading("tag", text="Tags")
+
+        # Add a scrollbar.
+        yscrollbar = ttk.Scrollbar(
+            self,
+            orient=tk.VERTICAL,
+            command=self.tag_list.yview
+        )
+        self.tag_list.configure(yscroll=yscrollbar.set)
+
+        # Layout the frame.
+        self.tag_list.grid(row=0, column=0, sticky="nswe")
+        yscrollbar.grid(row=0, column=1, sticky="ns")
+
+        self.refresh()
+
+    def refresh(self):
+        self.tag_list.delete(*self.tag_list.get_children())
+        for tag in self.master.dataset_model.list_tags():
+            self.tag_list.insert("", "end", values=[tag])
+
+
 class EditTagsFrame(ttk.Frame):
     """Edit tags frame."""
 
@@ -859,6 +896,43 @@ class EditTagsFrame(ttk.Frame):
 
         self.dataset_model = DataSetModel()
         self.dataset_model.load_dataset(dataset_uri)
+
+        # Entry and button to add a tag.
+        self.tag_var = tk.StringVar()
+        self.tag_entry = ttk.Entry(self, width=10, textvariable=self.tag_var)
+        self.add_btn = ttk.Button(self, text="Add", command=self.put_tag)
+
+        # Treeview displaying the dataset's tags.
+        self.tag_list_frame = TagListFrame(self)
+
+        # Delete button.
+        self.delete_btn = ttk.Button(self, text="Delete", command=self.delete_tag)  # NOQA
+
+        # Layout the frame.
+        self.tag_entry.grid(row=0, column=0, sticky="nsew")
+        self.add_btn.grid(row=0, column=1, sticky="nsew")
+        self.tag_list_frame.grid(row=1, column=0, columnspan=2, sticky="nswe")
+        self.delete_btn.grid(row=2, column=0, columnspan=2, sticky="nsew")
+
+        self.refresh()
+
+    def put_tag(self):
+        logger.info("Putting tag: {}".format(self.tag_var.get()))
+        self.dataset_model.put_tag(self.tag_var.get())
+        self.refresh()
+
+    def delete_tag(self):
+        cur_tag = self.tag_list_frame.tag_list.focus()
+        values = self.tag_list_frame.tag_list.item(cur_tag, option="values")
+        if values == "":
+            return
+        tag = values[0]
+        logger.info("Deleting tag: {}".format(tag))
+        self.dataset_model.delete_tag(tag)
+        self.refresh()
+
+    def refresh(self):
+        self.tag_list_frame.refresh()
 
 
 class EditMetadataWindow(tk.Toplevel):
