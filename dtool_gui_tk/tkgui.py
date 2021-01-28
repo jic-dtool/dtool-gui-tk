@@ -180,6 +180,9 @@ class DataSetFrame(ttk.Frame):
         self.dataset_title_frame = DataSetTitleFrame(self, root)
         self.dataset_title_frame.grid(row=0, column=0, sticky="ew")
 
+        self.dataset_tags_frame = DataSetTagsFrame(self, root)
+        self.dataset_tags_frame.grid(row=1, column=0, sticky="ew")
+
         self.dataset_metadata_frame = DataSetMetadataFrame(self, root)
         self.dataset_metadata_frame.grid(row=2, column=0, sticky="news")
 
@@ -195,6 +198,7 @@ class DataSetFrame(ttk.Frame):
     def refresh(self):
 
         self.dataset_title_frame.refresh()
+        self.dataset_tags_frame.refresh()
         self.dataset_metadata_frame.refresh()
         self.dataset_item_frame.refresh()
 
@@ -221,6 +225,31 @@ class DataSetTitleFrame(ttk.Frame):
 
     def refresh(self):
         self.name.config(text=self.root.dataset_model.name)
+
+
+class DataSetTagsFrame(ttk.Frame):
+    """View dataset title."""
+
+    def __init__(self, master, root):
+        super().__init__(master)
+        logger.info("Initialising {}".format(self))
+
+        self.root = root
+
+        # Make sure that the GUI expands/shrinks when the window is resized.
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+
+        self.tags = ttk.Label(self)  # NOQA
+        self.tags.grid(row=0, column=0, sticky="ew")
+
+        ttk.Separator(self, orient=tk.HORIZONTAL).grid(
+            row=1, column=0, sticky="ew", pady=(0, 4)
+        )
+
+    def refresh(self):
+        tags_text = "Tags: " + "; ".join(self.root.dataset_model.list_tags())
+        self.tags.config(text=tags_text)
 
 
 class DataSetItemsFrame(ttk.Frame):
@@ -932,6 +961,7 @@ class EditTagsFrame(ttk.Frame):
         logger.info("Putting tag: {}".format(self.tag_var.get()))
         self.dataset_model.put_tag(self.tag_var.get())
         self.refresh()
+        self.root.dataset_frame.refresh()
 
     def delete_tag(self):
         cur_tag = self.tag_list_frame.tag_list.focus()
@@ -942,6 +972,7 @@ class EditTagsFrame(ttk.Frame):
         logger.info("Deleting tag: {}".format(tag))
         self.dataset_model.delete_tag(tag)
         self.refresh()
+        self.root.dataset_frame.refresh()
 
     def refresh(self):
         self.tag_list_frame.refresh()
