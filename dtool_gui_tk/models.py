@@ -836,6 +836,8 @@ class DataSetListModel(object):
         self._datasets = []
         self._datasets_info = []
         self._active_index = None
+        self._tag_filter = None
+        self._all_tags = set()
 
     @property
     def base_uri(self):
@@ -859,12 +861,29 @@ class DataSetListModel(object):
         """
         return [ds.name for ds in self._datasets]
 
+    @property
+    def tag_filter(self):
+        """Return the tag filter.
+
+        :returns: tag filter
+        """
+        return self._tag_filter
+
     def set_base_uri_model(self, base_uri_model):
         """Set the base URI model.
 
         :param base_uri_model: dtool_gui_tk.models.LocalBaseURIModel
         """
         self._base_uri_model = base_uri_model
+        if self._base_uri_model.get_base_uri() is not None:
+            self.reindex()
+
+    def set_tag_filter(self, tag):
+        """Set the tag filter.
+
+        :param tag: tag string
+        """
+        self._tag_filter = tag
         if self._base_uri_model.get_base_uri() is not None:
             self.reindex()
 
@@ -897,17 +916,31 @@ class DataSetListModel(object):
             raise(IndexError())
         self._active_index = index
 
+    def list_tags(self):
+        """Return list of unique tags from all datasets.
+
+        :returns: list of all unique tags
+        """
+        return sorted(list(self._all_tags))
+
     def reindex(self):
         """Index the base URI."""
         self._datasets = []
         self._datasets_info = []
         self._active_index = None
+        self._all_tags = set()
         base_uri = self._base_uri_model.get_base_uri()
         if base_uri is None:
             return
         for ds in dtoolcore.iter_datasets_in_base_uri(base_uri):
-            self._datasets.append(ds)
-            self._datasets_info.append(_dataset_info(ds))
+            append_okay = True
+            ds_tags = set(ds.list_tags())
+            self._all_tags.update(ds_tags)
+            if self.tag_filter is not None and self.tag_filter not in ds_tags:
+                append_okay = False
+            if append_okay:
+                self._datasets.append(ds)
+                self._datasets_info.append(_dataset_info(ds))
 
         # The initial active index is 0 if there are datasets in the model.
         if len(self._datasets) > 0:
