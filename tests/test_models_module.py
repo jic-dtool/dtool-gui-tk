@@ -400,6 +400,76 @@ def test_DataSetListModel(tmp_dir_fixture):  # NOQA
 
 
 
+def test_DataSetListModel_filter_by_tag(tmp_dir_fixture):  # NOQA
+
+    from dtool_gui_tk.models import DataSetListModel, LocalBaseURIModel
+
+    # Create and configure a base URI and BaseURIModel.
+    base_uri_directory = os.path.join(tmp_dir_fixture, "datasets")
+    os.mkdir(base_uri_directory)
+    config_path = os.path.join(tmp_dir_fixture, "dtool-gui.json")
+    base_uri_model = LocalBaseURIModel(config_path)
+    base_uri_model.put_base_uri(base_uri_directory)
+
+    # Create and configure a DataSetListModel.
+    dataset_list_model = DataSetListModel()
+    base_uri = base_uri_model.get_base_uri()
+    dataset_list_model.set_base_uri_model(base_uri_model)
+
+    # Create three empty datasets in the base URI.
+    from dtoolcore import DataSetCreator
+    dataset_names = sorted(["ds1", "ds2", "ds3"])
+    creator_usernames = ("not", "in", "order")
+    dataset_uris = {}
+    for (ds_name, creator_name) in zip(dataset_names, creator_usernames):
+        with DataSetCreator(
+            name=ds_name,
+            base_uri=base_uri,
+            creator_username=creator_name
+        ) as ds_creator:
+            if ds_name != "ds2":
+                ds_creator.put_tag("some")
+            else:
+                ds_creator.put_tag("one")
+            ds_creator.put_tag("all")
+            dataset_uris[ds_name] = ds_creator.uri
+    dataset_list_model.reindex()
+
+    # Test without filtering.
+    assert dataset_list_model.tag_filter is None
+    names = [prop["name"] for prop in dataset_list_model.yield_properties()]
+    assert names == ["ds1", "ds2", "ds3"]
+
+    # Test with filtering.
+    dataset_list_model.set_tag_filter("some")
+    assert dataset_list_model.tag_filter == "some"
+    names = [prop["name"] for prop in dataset_list_model.yield_properties()]
+    assert names == ["ds1", "ds3"]
+
+    # Test with filtering and sorting.
+    dataset_list_model.sort(reverse=True)
+    names = [prop["name"] for prop in dataset_list_model.yield_properties()]
+    assert names == ["ds3", "ds1"]
+
+    # Test remove filtering.
+    dataset_list_model.set_tag_filter(None)
+    assert dataset_list_model.tag_filter is None
+    names = [prop["name"] for prop in dataset_list_model.yield_properties()]
+    assert names == ["ds1", "ds2", "ds3"]
+
+    # List all the unique tags.
+    assert dataset_list_model.list_tags() == ["all", "one", "some"]
+
+    # Delete the "some" tag.
+    from dtoolcore import DataSet
+    dataset_list_model.set_tag_filter("one")
+    uri = dataset_list_model.get_active_uri()
+    ds = DataSet.from_uri(uri)
+    ds.delete_tag("one")
+    dataset_list_model.reindex()
+    assert dataset_list_model.list_tags() == ["all", "some"]
+
+
 def test_MetadataSchemaListModel(tmp_dir_fixture):  # NOQA
 
     from dtool_gui_tk.models import MetadataSchemaListModel
