@@ -111,6 +111,7 @@ Description         Windows/Linux Mac OSX
 ==================  ============= =======
 Create new dataset  Ctrl+N        Cmd+N
 Edit metadata       Ctrl+M        Cmd+M
+Edit tags           Ctrl+T        Cmd+T
 Edit preferences    Ctrl+P        Cmd+,
 Quit                Ctrl+Q        Cmd+Q
 ==================  ============= =======
