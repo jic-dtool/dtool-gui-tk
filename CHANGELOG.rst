@@ -11,9 +11,6 @@ This change log uses principles from `keep a changelog <http://keepachangelog.co
 Added
 ^^^^^
 
-- Added ability to view, add and delete dataset tags
-- Added ability to filter dataset list view by tag
-
 
 Changed
 ^^^^^^^
@@ -30,14 +27,28 @@ Removed
 Fixed
 ^^^^^
 
+
+Security
+^^^^^^^^
+
+
+[0.3.0] - 2021-01-30
+--------------------
+
+Added
+^^^^^
+
+- Added ability to view, add and delete dataset tags
+- Added ability to filter dataset list view by tag
+
+Fixed
+^^^^^
+
 - Fixed defect where app crashed if there were no datasets present in the local
   base URI
 - Fixed defect where it was impossible to open the Preferences dialogue if a
   local base URI had not already been configured
-
-
-Security
-^^^^^^^^
+- Fixed defect where quit menu item and shortcut did not quit the application
 
 
 [0.2.0] - 2020-12-22
