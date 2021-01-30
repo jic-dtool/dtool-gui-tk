@@ -1384,6 +1384,7 @@ class App(tk.Tk):
     def quit(self):
         """Quit the dtool-gui application."""
         logger.info(self.quit.__doc__)
+        self.destroy()
 
     def _show_perferences_window_event(self, event):
         self.show_perferences_window()
