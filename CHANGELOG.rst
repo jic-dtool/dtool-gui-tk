@@ -12,6 +12,7 @@ Added
 ^^^^^
 
 - Added ability to view, add and delete dataset tags
+- Added ability to filter dataset list view by tag
 
 
 Changed

@@ -60,6 +60,73 @@ def _set_combobox_default_selection(combobox, choices, selected):
         combobox.current(index)
 
 
+class DataSetCollectionFrame(ttk.Frame):
+    """Dataset collection frame."""
+
+    def __init__(self, master, root):
+        super().__init__(master)
+        logger.info("Initialising {}".format(self))
+
+        self._sort_key = None
+        self._reverse_sort_order = False
+
+        # Make sure that the GUI expands/shrinks when the window is resized.
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(1, weight=1)
+
+        self.root = root
+
+        self.search_bar_frame = SearchBarFrame(self, root)
+        self.dataset_list_frame = DataSetListFrame(self, root)
+
+        # Layout the frame.
+        self.search_bar_frame.grid(row=0, column=0, sticky="nw")
+        self.dataset_list_frame.grid(row=1, column=0, sticky="news")
+
+    def refresh(self):
+        self.dataset_list_frame.refresh()
+
+
+class SearchBarFrame(ttk.Frame):
+    """Search bar frame."""
+
+    def __init__(self, master, root):
+        super().__init__(master)
+        logger.info("Initialising {}".format(self))
+
+        # Make sure that the GUI expands/shrinks when the window is resized.
+        self.columnconfigure(0, weight=1)
+
+        self.root = root
+
+        tag_filter_lbl = ttk.Label(self, text="Filter by tag")
+        self.selected_tag = tk.StringVar()
+        self.tag_options = ttk.Combobox(
+            self,
+            values=root.dataset_list_model.list_tags(),
+            textvariable=self.selected_tag,
+            state="readonly"
+        )
+        self.tag_options.bind('<<ComboboxSelected>>', self.set_tag_filter)
+        tag_clear_btn = ttk.Button(self, text="Clear", command=self.clear_tag_filter)  # NOQA
+
+        tag_filter_lbl.grid(row=0, column=0, sticky="w")
+        self.tag_options.grid(row=0, column=1, sticky="w")
+        tag_clear_btn.grid(row=0, column=2, sticky="w")
+
+    def set_tag_filter(self, event):
+        tag = self.selected_tag.get()
+        self.root.dataset_list_model.set_tag_filter(tag)
+        self.master.dataset_list_frame.refresh(reindex=False)
+        self.root.dataset_frame.refresh()
+
+    def clear_tag_filter(self):
+        self.tag_options.set("")
+        self.root.dataset_list_model.set_tag_filter(None)
+        self.master.dataset_list_frame.refresh(reindex=False)
+        self.root.dataset_frame.refresh()
+
+
 class DataSetListFrame(ttk.Frame):
     """List dataset frame."""
 
@@ -1228,8 +1295,8 @@ class App(tk.Tk):
         self.mainframe.columnconfigure(2, weight=1)
         self.mainframe.rowconfigure(0, weight=1)
 
-        self.dataset_list_frame = DataSetListFrame(self.mainframe, self)
-        self.dataset_list_frame.grid(row=0, column=0, sticky="nsew")
+        self.dataset_collection_frame = DataSetCollectionFrame(self.mainframe, self)  # NOQA
+        self.dataset_collection_frame.grid(row=0, column=0, sticky="nsew")
 
         # Add vertical separator between dataset list and dataset views.
         ttk.Separator(self.mainframe, orient=tk.VERTICAL).grid(row=0, column=1, sticky="ns")  # NOQA
@@ -1341,7 +1408,7 @@ class App(tk.Tk):
     def refresh(self):
         """Refreshing all frames."""
         logger.info(self.refresh.__doc__)
-        self.dataset_list_frame.refresh()
+        self.dataset_collection_frame.refresh()
         self.dataset_frame.refresh()
 
 
