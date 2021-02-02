@@ -85,6 +85,7 @@ class DataSetCollectionFrame(ttk.Frame):
 
     def refresh(self):
         self.dataset_list_frame.refresh()
+        self.search_bar_frame.refresh()
 
 
 class SearchBarFrame(ttk.Frame):
@@ -125,6 +126,9 @@ class SearchBarFrame(ttk.Frame):
         self.root.dataset_list_model.set_tag_filter(None)
         self.master.dataset_list_frame.refresh(reindex=False)
         self.root.dataset_frame.refresh()
+
+    def refresh(self):
+        self.tag_options.config({"values": self.root.dataset_list_model.list_tags()})  # NOQA
 
 
 class DataSetListFrame(ttk.Frame):
@@ -1028,7 +1032,7 @@ class EditTagsFrame(ttk.Frame):
         logger.info("Putting tag: {}".format(self.tag_var.get()))
         self.dataset_model.put_tag(self.tag_var.get())
         self.refresh()
-        self.root.dataset_frame.refresh()
+#       self.root.dataset_frame.refresh()
 
     def delete_tag(self):
         cur_tag = self.tag_list_frame.tag_list.focus()
@@ -1039,10 +1043,12 @@ class EditTagsFrame(ttk.Frame):
         logger.info("Deleting tag: {}".format(tag))
         self.dataset_model.delete_tag(tag)
         self.refresh()
-        self.root.dataset_frame.refresh()
+#       self.root.dataset_frame.refresh()
 
     def refresh(self):
         self.tag_list_frame.refresh()
+        self.root.dataset_collection_frame.refresh()
+        self.root.dataset_frame.refresh()
 
 
 class EditMetadataWindow(tk.Toplevel):
