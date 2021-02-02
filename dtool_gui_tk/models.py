@@ -950,6 +950,11 @@ class DataSetListModel(object):
         """Sort the datasets by items properties."""
         logger.info("Sorting using key={}, reverse={}".format(key, reverse))
         assert key in ("name", "size_int", "num_items", "creator", "date")
+
+        # Nothing to sort if there are no datasets.
+        if len(self._datasets) == 0:
+            return
+
         sort_values = [p[key] for p in self._datasets_info]
         zipped_lists = zip(sort_values, self._datasets, self._datasets_info)
         sorted_pairs = sorted(zipped_lists, key=itemgetter(0), reverse=reverse)
