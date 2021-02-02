@@ -27,6 +27,9 @@ Removed
 Fixed
 ^^^^^
 
+- Fixed issue when trying to sort a ``DataSetListModel`` with no datasets in it;
+  issue: https://github.com/jic-dtool/dtool-gui-tk/issues/25
+
 
 Security
 ^^^^^^^^
