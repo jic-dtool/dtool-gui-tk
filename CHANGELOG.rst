@@ -27,6 +27,8 @@ Removed
 Fixed
 ^^^^^
 
+- Fixed issue where trying to edit tags for datasets with complex metadata raised errors;
+  issue: https://github.com/jic-dtool/dtool-gui-tk/issues/23
 - Fixed issue where tags in drop down filter did not update when tags where added or
   deleted; and when the local base URI directory was updated;
   issue: https://github.com/jic-dtool/dtool-gui-tk/issues/24

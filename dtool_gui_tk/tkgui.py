@@ -995,7 +995,12 @@ class EditTagsFrame(ttk.Frame):
         self.root = root
 
         self.dataset_model = DataSetModel()
-        self.dataset_model.load_dataset(dataset_uri)
+        try:
+            self.dataset_model.load_dataset(dataset_uri)
+        except UnsupportedTypeError:
+            # Don't need the DataSetModel to have loaded properly to work with
+            # tags in the dataset.
+            pass
 
         # Entry and button to add a tag.
         vcmd = (self.master.register(self._validate_tag_callback), "%P")
