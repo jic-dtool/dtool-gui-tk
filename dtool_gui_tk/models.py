@@ -219,6 +219,20 @@ class MetadataSchemaListModel(_ConfigFileVariableBaseModel):
         value = os.path.abspath(metadata_schema_directory)
         self._put(value)
 
+    def put_metadata_schema_item(self, name, metadata_schema):
+        """Put/update a metadata schema item in the metadata schema directory.
+
+        :param name: name of the metadata schema
+        :param metadata_schema: dictionary with the metadata schema
+        """
+        fname = name + ".json"
+        fpath = os.path.join(
+            self.get_metadata_schema_directory(),
+            fname
+        )
+        with open(fpath, "w") as fh:
+            json.dump(metadata_schema, fh)
+
     @property
     def metadata_model_names(self):
         """Return list of metadata model names.

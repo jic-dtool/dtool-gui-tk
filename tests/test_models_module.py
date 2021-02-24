@@ -506,7 +506,7 @@ def test_MetadataSchemaListModel(tmp_dir_fixture):  # NOQA
 
     assert another_model.metadata_model_names == ["basic"]
 
-    # Add another schema manually.
+    # Add another schema using API.
     advanced_schema = {
         "type": "object",
         "properties": {
@@ -514,9 +514,11 @@ def test_MetadataSchemaListModel(tmp_dir_fixture):  # NOQA
         },
         "required": ["project"]
     }
-    fpath = os.path.join(metadata_schema_dir, "advanced.json")
-    with open(fpath, "w") as fh:
-        json.dump(advanced_schema, fh)
+
+    another_model.put_metadata_schema_item(
+        name="advanced",
+        metadata_schema=advanced_schema
+    )
 
     assert another_model.metadata_model_names == ["advanced", "basic"]
 
