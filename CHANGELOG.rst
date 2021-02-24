@@ -11,11 +11,6 @@ This change log uses principles from `keep a changelog <http://keepachangelog.co
 Added
 ^^^^^
 
-- Added "File >> Import metadata template..."
-- Added "file >> Export metadata template..."
-- Added ``put_metadata_schema_item`` method to
-  ``dtool_gui_tk.models.MetadataSchemaListModel``
-
 
 Changed
 ^^^^^^^
@@ -32,13 +27,30 @@ Removed
 Fixed
 ^^^^^
 
-- Fixed defect where text entered into a metadata form could be lost
-  when adding another optional metadata field;
-  https://github.com/jic-dtool/dtool-gui-tk/issues/27
-
 
 Security
 ^^^^^^^^
+
+
+[0.4.0] - 2021-02-24
+--------------------
+
+Improvements to make it easier to add metadata templates.
+
+Added
+^^^^^
+
+- Added "File >> Import metadata template..."
+- Added "file >> Export metadata template..."
+- Added ``put_metadata_schema_item`` method to
+  ``dtool_gui_tk.models.MetadataSchemaListModel``
+
+Fixed
+^^^^^
+
+- Fixed defect where text entered into a metadata form could be lost
+  when adding another optional metadata field;
+  https://github.com/jic-dtool/dtool-gui-tk/issues/27
 
 
 [0.3.1] - 2021-02-02
