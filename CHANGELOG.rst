@@ -27,6 +27,10 @@ Removed
 Fixed
 ^^^^^
 
+- Fixed defect where text entered into a metadata form could be lost
+  when adding another optional metadata field;
+  https://github.com/jic-dtool/dtool-gui-tk/issues/27
+
 
 Security
 ^^^^^^^^
