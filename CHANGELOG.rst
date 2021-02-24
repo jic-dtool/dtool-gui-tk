@@ -11,6 +11,8 @@ This change log uses principles from `keep a changelog <http://keepachangelog.co
 Added
 ^^^^^
 
+- Added "File >> Import metadata template..."
+- Added "file >> Export metadata template..."
 - Added ``put_metadata_schema_item`` method to
   ``dtool_gui_tk.models.MetadataSchemaListModel``
 

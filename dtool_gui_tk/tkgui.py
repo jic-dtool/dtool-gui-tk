@@ -1189,6 +1189,65 @@ class PreferencesWindow(tk.Toplevel):
         self._setup_base_uri_directory_input_field()
 
 
+class ExportMetadataTemplateWindow(tk.Toplevel):
+    """Export metadata template window."""
+
+    def __init__(self, master):
+        super().__init__(master)
+        self.title("Export metadata template")
+
+        # Implement custom behaviour when closing the window.
+        # Needed to set the App.preferences_window to None.
+        self.protocol("WM_DELETE_WINDOW", self.dismiss)
+
+        logger.info("Initialising {}".format(self))
+        self.root = master
+        mainframe = ttk.Frame(self)
+        mainframe.grid(row=0, column=0, sticky="nwes")
+
+        self.metadata_schema_list_model = MetadataSchemaListModel()
+
+        self.metadata_model_name = tk.StringVar()
+        self.label_frame = ttk.LabelFrame(mainframe, text="Metadata schema export")  # NOQA
+
+        schema_selection = self.metadata_schema_list_model.metadata_model_names  # NOQA
+
+        self.metadata_schema_combobox = ttk.Combobox(
+            self.label_frame,
+            state="readonly",
+            values=schema_selection,
+            textvariable=self.metadata_model_name
+        )
+        self.metadata_schema_combobox.current(0)
+        self.export_btn = ttk.Button(
+            self.label_frame,
+            text="Export",
+            command=self.export
+        )
+        self.metadata_schema_combobox.grid(row=0, column=0)
+        self.export_btn.grid(row=0, column=1)
+        self.label_frame.grid(row=0, column=0)
+
+    def dismiss(self):
+        self.root.export_metadata_template_window = None
+        self.destroy()
+
+    def export(self):
+        fpath = fd.asksaveasfilename()
+
+        if fpath == "":
+            # User pressed cancel.
+            return
+
+        name = self.metadata_model_name.get()
+        logger.info("Export metadata schema file to: {}".format(fpath))
+        logger.info("Exporting {}".format(name))
+        model = self.metadata_schema_list_model.get_metadata_model(name)
+        schema = model.get_master_schema()
+        with open(fpath, "w") as fh:
+            json.dump(schema, fh, indent=2)
+
+
 class NewDataSetProgressBar(ttk.Progressbar):
 
     def __init__(self, master, maximum):
@@ -1215,6 +1274,7 @@ class App(tk.Tk):
         self.title("dtool")
 
         self.preferences_window = None
+        self.export_metadata_template_window = None
         self.edit_metadata_window = None
         self.active_dataset_metadata_supported = False
         self.edit_tags_window = None
@@ -1263,6 +1323,21 @@ class App(tk.Tk):
             accelerator_key="N",
             cmd=self.new_dataset,
             event_cmd=self._new_dataset_event
+        )
+        menu_file.add_separator()
+        self._add_menu_command(
+            menu=menu_file,
+            label="Import metadata template...",
+            accelerator_key="I",
+            cmd=self.import_metadata_schema,
+            event_cmd=self._import_metadata_schema
+        )
+        self._add_menu_command(
+            menu=menu_file,
+            label="Export metadata template...",
+            accelerator_key="E",
+            cmd=self.export_metadata_schema,
+            event_cmd=self._export_metadata_schema
         )
 
         if self.platform != "aqua":
@@ -1360,6 +1435,58 @@ class App(tk.Tk):
         """Open window with form to create a new dataset."""
         logger.info(self.new_dataset.__doc__)
         NewDataSetWindow(self)
+
+    def _import_metadata_schema(self, event):
+        self.import_metadata_schema()
+
+    def import_metadata_schema(self):
+        """Open window with form to import metadata schema."""
+        logger.info(self.import_metadata_schema.__doc__)
+        fpath = fd.askopenfilename()
+        fname = os.path.basename(fpath)
+        name, _ = os.path.splitext(fname)
+
+        metadata_schema_list_model = MetadataSchemaListModel()
+
+        # If a metadata schema with the same name exists check
+        # if the user really wants to overwrite it.
+        overwrite = True
+        if name in metadata_schema_list_model.metadata_model_names:
+            overwrite = mb.askyesno(
+                message="Are you sure you want to overwrite the {} metadata schema?".format(name),  # NOQA
+                icon="question",
+                title="Metadata schema {} already exists".format(name)
+            )
+        logging.info("Overwrite {}".format(overwrite))
+
+        if not overwrite:
+            return
+
+        try:
+            with open(fpath) as fh:
+                schema = json.load(fh)
+                metadata_schema_list_model.put_metadata_schema_item(
+                    name=name,
+                    metadata_schema=schema,
+                )
+        except Exception as e:
+            logger.warning(e)
+            mb.showwarning(
+                "Failed to import template",
+                "Invalid schema template format."
+            )
+        logger.info(fpath)
+
+    def _export_metadata_schema(self, event):
+        self.export_metadata_schema()
+
+    def export_metadata_schema(self):
+        """Open window with form to export metadata schema."""
+        logger.info(self.export_metadata_schema.__doc__)
+        if self.export_metadata_template_window is None:
+            self.export_metadata_template_window = ExportMetadataTemplateWindow(self)  # NOQA
+        else:
+            self.export_metadata_template_window.focus_set()
 
     def _edit_metadata_event(self, event):
         self.edit_metadata()

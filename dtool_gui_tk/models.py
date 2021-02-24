@@ -827,10 +827,10 @@ class ProtoDataSetModel(object):
             ds_creator.put_readme("\n".join(readme_lines))
 
             # Add the metadata schema.
-            metdata_schema = self.metadata_model.get_master_schema()
+            metadata_schema = self.metadata_model.get_master_schema()
             ds_creator.put_annotation(
                 METADATA_SCHEMA_ANNOTATION_NAME,
-                metdata_schema
+                metadata_schema
             )
 
             # Add data items.
