@@ -634,10 +634,16 @@ class MetadataFormFrame(ttk.Frame):
         if (value_as_str is not None) and (value_as_str != ""):
             logger.info(f"Setting {name} to: {value_as_str}")
             self.metadata_model.set_value_from_str(name, value_as_str)
+
+    def _value_update_event_and_refresh(self, event):
+        self._value_update_event(self, event)
         self.refresh()
 
-    def value_update_event_focus_out(self, event):
+    def value_update_event_focus_stay(self, event):
         self._value_update_event(event)
+
+    def value_update_event_focus_out(self, event):
+        self._value_update_and_refresh(event)
 
     def value_update_event_focus_next(self, event):
         widget = event.widget
@@ -665,6 +671,7 @@ class MetadataFormFrame(ttk.Frame):
         if value is not None:
             e.insert(0, str(value))
         e.name = name
+        e.bind("<KeyRelease>", self.value_update_event_focus_stay)
         e.bind("<FocusOut>", self.value_update_event_focus_out)
         e.bind("<Return>", self.value_update_event_focus_next)
         e.bind("<Tab>", self.value_update_event_focus_next)
